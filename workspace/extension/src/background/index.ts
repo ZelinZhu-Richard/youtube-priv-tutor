@@ -347,11 +347,11 @@ async function loadCtx(videoId: string): Promise<Ctx> {
 }
 
 /** The cached prefix for this video: profile, video context, lesson map and connections. */
-function qaContext(ctx: Ctx, forceFull = false) {
-  const chunks = ctx.transcript ? mergeIntoChunks(ctx.transcript.cues) : [];
+function qaContext(ctx: Ctx, forceFull = false, withhold = false) {
+  const chunks = ctx.transcript && !withhold ? mergeIntoChunks(ctx.transcript.cues) : [];
   const tokens = estimateTokens(renderCues(chunks));
-  const mode = !ctx.transcript ? 'none' : forceFull ? 'full' : chooseTranscriptMode(ctx.meta.lengthSeconds, tokens, ctx.settings.fullTranscriptMinutes);
-  const text = videoContextText({ meta: ctx.meta, chunks, trackLabel: ctx.transcript?.trackName ?? null, isAuto: !!ctx.transcript?.isAuto, mode });
+  const mode = !ctx.transcript || withhold ? 'none' : forceFull ? 'full' : chooseTranscriptMode(ctx.meta.lengthSeconds, tokens, ctx.settings.fullTranscriptMinutes);
+  const text = videoContextText({ meta: ctx.meta, chunks, trackLabel: ctx.transcript?.trackName ?? null, isAuto: !!ctx.transcript?.isAuto, mode, withheld: withhold });
   const connections = connectionsText(findConnections(ctx.video, ctx.library));
   const blocks = contextBlocks(text, forceFull ? null : ctx.video.map, { profile: profileText(ctx.profile), connections });
   return { mode, text, chunks, blocks };
@@ -553,12 +553,15 @@ async function generateMap(ctx: Ctx, call: Call) {
 }
 
 async function ask(ctx: Ctx, msg: AskRequest, call: Call, done: (res: DoneResult, r: StreamResult) => void, post: Post) {
-  let q = qaContext(ctx);
+  // Captions chip off: neither the transcript nor the local window is sent, and no lesson map is
+  // generated from the transcript on the learner's behalf.
+  const withhold = msg.includeTranscript === false;
+  let q = qaContext(ctx, false, withhold);
   if (q.mode === 'summary' && !ctx.video.map) {
     post({ type: 'thinking', reqId: msg.reqId, text: 'Long video: preparing a lesson map first so the tutor has an overview…\n' });
     const res = await generateMap(ctx, call);
     addUsage(res.r.usage).catch(() => undefined);
-    q = qaContext(ctx);
+    q = qaContext(ctx, false, withhold);
   }
   const map = ctx.video.map;
   const allHistory = (await db.byVideo('history', msg.videoId)).sort((a, b) => a.createdAt - b.createdAt);
@@ -566,7 +569,7 @@ async function ask(ctx: Ctx, msg: AskRequest, call: Call, done: (res: DoneResult
   const si = map ? currentSectionIndex(map.sections, msg.t) : -1;
   const parent = msg.parentId ? allHistory.find((h) => h.id === msg.parentId) ?? null : null;
   const local =
-    msg.captionRange && ctx.transcript
+    msg.captionRange && ctx.transcript && !withhold
       ? { from: msg.captionRange[0], to: msg.captionRange[1], cues: selectWindow(ctx.transcript.cues, msg.captionRange[0], msg.captionRange[1]) }
       : null;
   const earlier: { frame: FrameInput; t: number }[] = [];

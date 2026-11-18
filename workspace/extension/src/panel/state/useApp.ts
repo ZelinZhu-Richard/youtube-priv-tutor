@@ -358,6 +358,25 @@ export function useApp() {
     }
   }
 
+  // Long pause on a dense frame. Called on player events and, because a paused player sends no
+  // events, on a timer while paused. Fires at most once per pause.
+  const pauseFlagged = useRef(false);
+  function checkLongPause() {
+    if (!player?.paused || player.ended || pausedAt.current === null || pauseFlagged.current) return;
+    if (!confusionAllowed() || confusion) return;
+    if (!pauseConfusion((Date.now() - pausedAt.current) / 1000, player.density ?? null)) return;
+    pauseFlagged.current = true;
+    setConfusion({ from: Math.max(0, player.t - 60), to: player.t, why: 'paused' });
+    learn({ type: 'lost', concepts: conceptsNear(map, player.t), note: `long pause at ${formatTime(player.t)}` });
+  }
+  const longPause = useRef(checkLongPause);
+  longPause.current = checkLongPause;
+  useEffect(() => {
+    if (!player?.paused || player.ended || !videoId || loadedVid !== videoId) return;
+    const timer = setInterval(() => longPause.current(), 5000);
+    return () => clearInterval(timer);
+  }, [player?.paused, player?.ended, videoId, loadedVid]);
+
   // ---------- player-driven state (§12.2), progress, time spent, signals, smart speed ----------
   const prevPlayer = useRef<PlayerState | null>(null);
   useEffect(() => {
@@ -382,11 +401,11 @@ export function useApp() {
     // Long pause on a dense frame.
     if (player.paused && !player.ended) {
       pausedAt.current ??= now;
-      if (confusionAllowed() && !confusion && pauseConfusion((now - pausedAt.current) / 1000, player.density ?? null)) {
-        setConfusion({ from: Math.max(0, player.t - 60), to: player.t, why: 'paused' });
-        learn({ type: 'lost', concepts: conceptsNear(map, player.t), note: `long pause at ${formatTime(player.t)}` });
-      }
-    } else pausedAt.current = null;
+      checkLongPause();
+    } else {
+      pausedAt.current = null;
+      pauseFlagged.current = false;
+    }
     // Smart speed: on entering a section, apply its suggested rate (setting on only).
     if (settings.smartSpeed && map && sectionIdx >= 0 && !player.paused && speed?.section !== sectionIdx) {
       baseRate.current ??= player.rate || 1;

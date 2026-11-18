@@ -28,6 +28,18 @@ export function QueueView({ onOpen, compact }: { onOpen: (videoId: string, t: nu
   useEffect(() => {
     load();
   }, []);
+  // Cards graded "Again" leave the queue until they are due (10 minutes), then rejoin at the end
+  // without disturbing the card on screen.
+  const [retryAt, setRetryAt] = useState<number[]>([]);
+  useEffect(() => {
+    if (!retryAt.length) return;
+    const timer = setTimeout(async () => {
+      const due = interleave(await db.dueCardsFromDb());
+      setQueue((q) => [...(q ?? []), ...due.filter((c) => !(q ?? []).some((x) => x.id === c.id))]);
+      setRetryAt((ts) => ts.filter((t) => t > Date.now()));
+    }, Math.max(1000, Math.min(...retryAt) - Date.now() + 500));
+    return () => clearTimeout(timer);
+  }, [retryAt]);
 
   if (!queue) return <p class="small muted">Loading review cards…</p>;
   const card = queue[0];
@@ -37,6 +49,7 @@ export function QueueView({ onOpen, compact }: { onOpen: (videoId: string, t: nu
         <h2>{done ? 'Review done' : 'Nothing due'}</h2>
         <p class="small">
           {done ? `You reviewed ${done} card${done === 1 ? '' : 's'}. ` : ''}
+          {retryAt.length ? `${retryAt.length} marked Again will come back in about 10 minutes. ` : ''}
           {total ? `${total} card${total === 1 ? '' : 's'} scheduled.` : 'Cards come from shaky concepts, missed checkpoints and mistakes.'}
         </p>
       </div>
@@ -45,9 +58,8 @@ export function QueueView({ onOpen, compact }: { onOpen: (videoId: string, t: nu
   const grade = async (g: Grade) => {
     await records.reviewCard(card, g);
     setDone((n) => n + 1);
-    const rest = queue.slice(1);
-    // "Again" comes back later in this session.
-    setQueue(g === 'again' ? [...rest, schedule(card, 'again')] .filter((c, i, a) => a.findIndex((x) => x.id === c.id) === i) : rest);
+    setQueue(queue.slice(1));
+    if (g === 'again') setRetryAt((ts) => [...ts, schedule(card, 'again').due]);
     setShown(false);
   };
   const now = Date.now();

@@ -159,6 +159,8 @@ export interface AskRequest {
   frameNote: string | null;
   crop: FrameInput | null;
   captionRange: [number, number] | null;
+  /** False when the learner removed the captions chip: no transcript at all goes out, not just the local window. */
+  includeTranscript?: boolean;
   depth?: Depth;
   parentId?: string;
   fallbackLanguage: string;

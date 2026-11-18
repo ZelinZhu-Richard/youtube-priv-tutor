@@ -56,17 +56,21 @@ export interface VideoContextInput {
   trackLabel: string | null;
   isAuto: boolean;
   mode: 'full' | 'summary' | 'none';
+  /** The learner chose not to send captions for this question. */
+  withheld?: boolean;
 }
 
 /** Block 1 of the cached prefix: metadata, chapters and (in full mode) the whole transcript. */
 export function videoContextText(input: VideoContextInput): string {
-  const { meta, chunks, trackLabel, isAuto, mode } = input;
+  const { meta, chunks, trackLabel, isAuto, mode, withheld } = input;
   const lines = ['<video_context>', `Title: ${meta.title}`, `Channel: ${meta.channel}`, `Duration: ${formatTime(meta.lengthSeconds)}`];
   if (meta.chapters.length) {
     lines.push('Chapters:');
     for (const c of meta.chapters) lines.push(`[${formatTime(c.start)}] ${c.title}`);
   }
-  if (mode === 'none') {
+  if (withheld) {
+    lines.push('Captions: the learner chose not to send them. Answer from the frame and the question, and say when you cannot tell what was said.');
+  } else if (mode === 'none') {
     lines.push('Captions: none available for this video. Answer from the frame, and say when you cannot tell what was said.');
   } else {
     lines.push(`Captions: ${trackLabel ?? 'unknown track'}${isAuto ? ' (automatic captions: technical terms may be garbled)' : ''}`);

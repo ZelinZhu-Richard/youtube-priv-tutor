@@ -93,6 +93,11 @@ export function useAsk(app: App) {
     }
     if (busy) return;
     // The frame chip is the learner's choice of what gets sent; never override it silently.
+    if (!includeCaptions && kind === 'lost') {
+      app.setView('ask');
+      app.setNotice('"I\'m lost" works from the captions, and you chose not to send them. Turn captions back on to use it.');
+      return;
+    }
     if (!includeFrame && SCREEN_KINDS.includes(kind)) {
       app.setView('ask');
       app.setNotice('This needs the frame, and you chose not to send it. Turn the frame back on to use it.');
@@ -120,7 +125,7 @@ export function useAsk(app: App) {
     } else if (!textOnly) frameNote = 'the learner removed it';
     const fp = f ? splitDataUrl(f.dataUrl) : null;
     const cp = crop && cropValid && f && !textOnly ? splitDataUrl(crop.dataUrl) : null;
-    const wantCaptions = kind === 'lost' || (includeCaptions && !textOnly);
+    const wantCaptions = includeCaptions && !textOnly;
     const req: AskRequest = {
       type: 'ask',
       reqId: uid('q'),
@@ -133,6 +138,7 @@ export function useAsk(app: App) {
       frameNote,
       crop: cp && crop ? { mediaType: cp.mediaType as 'image/png', data: cp.data, width: crop.width, height: crop.height } : null,
       captionRange: wantCaptions && app.captions.state === 'ready' ? defaultCaptionRange(now, dur) : null,
+      includeTranscript: includeCaptions,
       depth: opts.depth,
       parentId: opts.parentId,
       fallbackLanguage: navigator.language || 'English',
