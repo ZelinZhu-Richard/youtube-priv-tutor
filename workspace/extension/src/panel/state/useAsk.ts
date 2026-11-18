@@ -38,6 +38,11 @@ export function useAsk(app: App) {
   const raf = useRef(0);
   /** The request this panel is currently showing; callbacks from any other request are ignored. */
   const activeReq = useRef<string | null>(null);
+  /** True from the moment a question is accepted until it is sent or abandoned (state updates are too late for this). */
+  const preparing = useRef(false);
+  /** The video the panel is on right now, readable from inside an async question. */
+  const liveVideo = useRef(app.videoId);
+  liveVideo.current = app.videoId;
 
   useEffect(() => {
     activeReq.current = null;
@@ -90,7 +95,22 @@ export function useAsk(app: App) {
   }
 
   async function ask(kind: AskKind, question: string, opts: { depth?: Depth; parentId?: string } = {}) {
+    // Reserve synchronously: a second click while the first question is still gathering its
+    // context must not start a parallel paid request.
+    if (preparing.current) return;
+    preparing.current = true;
+    try {
+      await prepareAndSend(kind, question, opts);
+    } finally {
+      preparing.current = false;
+    }
+  }
+
+  async function prepareAndSend(kind: AskKind, question: string, opts: { depth?: Depth; parentId?: string }) {
     const { videoId, meta } = app;
+    /** True when the page or the panel has moved to another video since this question started. */
+    const moved = (s: { videoId: string | null } | null) => liveVideo.current !== videoId || (!!s && s.videoId !== videoId);
+    const abandon = () => app.setNotice('The video changed before the question was sent. Ask again.');
     if (!videoId || !meta) return;
     if (!app.keyInfo?.hasKey) {
       app.setNotice('Add your Anthropic API key in Settings first.');
@@ -110,6 +130,7 @@ export function useAsk(app: App) {
     }
     app.setView('ask');
     const st = await app.cs({ type: 'cs/get-state' }).catch(() => null);
+    if (moved(st)) return abandon();
     const p = st?.player ?? app.player;
     const now = p?.t ?? app.t;
     const dur = p?.duration || meta.lengthSeconds;
@@ -123,6 +144,8 @@ export function useAsk(app: App) {
       else {
         cropValid = false;
         const r = await capture();
+        // The frame just captured is whatever the page shows now; make sure that is still this video.
+        if (moved(await app.cs({ type: 'cs/get-state' }).catch(() => null))) return abandon();
         f = r.frame;
         if (!f) frameNote = r.error ?? 'the frame could not be captured';
       }
