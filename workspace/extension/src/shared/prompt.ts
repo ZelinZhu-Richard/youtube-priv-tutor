@@ -142,7 +142,8 @@ export interface TurnInput {
   earlier?: { frame: FrameInput; t: number }[];
   learnerDigest: string;
   depth?: Depth;
-  parent?: Pick<HistoryEntry, 'question' | 'at'> | null;
+  /** The answer a depth request refers to. `answer` is set only when that turn is not already replayed as history. */
+  parent?: (Pick<HistoryEntry, 'question' | 'at'> & { answer?: string }) | null;
   hintsFirst: boolean;
   /** Language to use when the learner typed nothing (e.g. the browser UI language). */
   fallbackLanguage: string;
@@ -176,7 +177,8 @@ export function taskFor(input: Pick<TurnInput, 'kind' | 'depth' | 'parent' | 'hi
       return 'Walk the learner through what is on screen one step at a time. For a derivation or proof: number each step, show the expression, and name the rule or fact used; fill in steps the lecturer skipped. For code: trace it line by line with concrete example values, showing how variables change. End with a one-line summary of the idea.';
     case 'depth': {
       const ref = input.parent ? `This refers to your answer to the question asked at [${formatTime(input.parent.at)}]: "${input.parent.question}".\n` : '';
-      return ref + DEPTH_TASK[input.depth ?? 'simpler'];
+      const prev = input.parent?.answer ? `That answer is not in the conversation above, so here it is:\n<previous_answer>\n${input.parent.answer.slice(0, 12000)}\n</previous_answer>\n` : '';
+      return ref + prev + DEPTH_TASK[input.depth ?? 'simpler'];
     }
     case 'recap':
       return 'The learner is coming back to this video. In exactly three short lines, recap what the video has covered up to the current time, with a timestamp on each line. No preamble.';

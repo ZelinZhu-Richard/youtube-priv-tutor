@@ -111,10 +111,18 @@ chrome.commands.onCommand.addListener((command, tab) => {
   // Must be called synchronously in the user-gesture handler. Hidden in fullscreen, where the
   // content script shows its overlay instead.
   chrome.sidePanel.open({ windowId: tab.windowId }).catch(() => undefined);
-  const at = Date.now();
-  chrome.storage.session.set({ [KEYS.pendingCommand]: { action, tabId: tab.id, at } }).catch(() => undefined);
-  broadcast({ type: 'evt/command', action, tabId: tab.id, at });
-  chrome.tabs.sendMessage(tab.id, { type: 'cs/command', action }).catch(() => undefined);
+  const tabId = tab.id;
+  // Exactly one UI answers a shortcut. In fullscreen the page's overlay takes it and says so;
+  // only otherwise is it handed to the side panel. (No content script yet: the panel takes it.)
+  chrome.tabs
+    .sendMessage(tabId, { type: 'cs/command', action })
+    .catch(() => null)
+    .then((r: { handled?: boolean } | null) => {
+      if (r?.handled) return;
+      const at = Date.now();
+      chrome.storage.session.set({ [KEYS.pendingCommand]: { action, tabId, at } }).catch(() => undefined);
+      broadcast({ type: 'evt/command', action, tabId, at });
+    });
 });
 
 async function bookmark(tabId: number, note = ''): Promise<BackgroundResponses['bg/bookmark']> {
@@ -594,7 +602,9 @@ async function ask(ctx: Ctx, msg: AskRequest, call: Call, done: (res: DoneResult
     earlier,
     learnerDigest: learnerDigest(ctx.video.learner),
     depth: msg.depth,
-    parent,
+    // Depth buttons work on answers outside the replayed history window too, so send that answer
+    // along when the model would not otherwise see it.
+    parent: parent ? { question: parent.question, at: parent.at, answer: history.some((h) => h.id === parent.id) ? undefined : parent.answer } : null,
     hintsFirst: ctx.settings.hintsFirst,
     fallbackLanguage: msg.fallbackLanguage,
   });

@@ -104,6 +104,14 @@ describe('turnText', () => {
 });
 
 describe('taskFor', () => {
+  it('includes the parent answer for a depth request only when it is supplied', () => {
+    const base = { kind: 'depth' as const, depth: 'simpler' as const, question: '', hintsFirst: false };
+    const without = taskFor({ ...base, parent: { question: 'Why n-1?', at: 754 } });
+    expect(without).toContain('[12:34]');
+    expect(without).not.toContain('<previous_answer>');
+    const withAnswer = taskFor({ ...base, parent: { question: 'Why n-1?', at: 754, answer: 'Because of the lost degree of freedom.' } });
+    expect(withAnswer).toContain('<previous_answer>\nBecause of the lost degree of freedom.\n</previous_answer>');
+  });
   it("asks the I'm-lost answer to name the sticking point and end with alternatives", () => {
     const t = taskFor({ kind: 'lost', question: '', hintsFirst: false });
     expect(t).toContain('Likely sticking point:');

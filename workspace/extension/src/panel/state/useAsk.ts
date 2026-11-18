@@ -36,8 +36,11 @@ export function useAsk(app: App) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const deltaBuf = useRef('');
   const raf = useRef(0);
+  /** The request this panel is currently showing; callbacks from any other request are ignored. */
+  const activeReq = useRef<string | null>(null);
 
   useEffect(() => {
+    activeReq.current = null;
     setPending(null);
     setAlts({});
     setFrame(null);
@@ -159,6 +162,7 @@ export function useAsk(app: App) {
     setPending({ req, text: '', thinking: '', error: null });
     deltaBuf.current = '';
     const reqId = req.reqId;
+    activeReq.current = reqId;
     app.port.request(req, {
       onThinking: (d) => setPending((pp) => (pp && pp.req.reqId === reqId ? { ...pp, thinking: pp.thinking + d } : pp)),
       onDelta: (d) => {
@@ -173,10 +177,15 @@ export function useAsk(app: App) {
       },
       onDone: async (res, info) => {
         if (res.kind !== 'ask') return;
+        // A request for a previous video can finish after the learner has moved on and asked
+        // again; it must not clear the newer request's state.
+        if (activeReq.current !== reqId) return;
         cancelAnimationFrame(raf.current);
         raf.current = 0;
         if (res.alternatives.length) setAlts((a) => ({ ...a, [res.entry.id]: res.alternatives }));
         await app.reload();
+        if (activeReq.current !== reqId) return;
+        activeReq.current = null;
         app.learn({ type: 'asked', concepts: res.entry.concepts });
         setPending(null);
         setCrop(null);
@@ -184,6 +193,7 @@ export function useAsk(app: App) {
         if (info.truncated) app.setNotice('The answer hit the length limit and was cut off.');
       },
       onError: (error) => {
+        if (activeReq.current !== reqId) return;
         cancelAnimationFrame(raf.current);
         raf.current = 0;
         if (error.code === 'aborted') setPending(null);
