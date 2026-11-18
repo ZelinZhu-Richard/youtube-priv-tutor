@@ -240,12 +240,21 @@ export function connectionsText(conns: Connection[]): string {
   return `<connections>\nConcepts in this video that the learner met in videos they studied earlier. When an answer relies on one, say so and link the earlier video with a Markdown link to the URL given.\n${lines.join('\n')}\n</connections>`;
 }
 
+/** True when `phrase` (4+ characters) occurs in `text` as whole words, so "log" does not match "logistic". */
+function hasPhrase(text: string, phrase: string): boolean {
+  if (phrase.length < 4) return false;
+  const i = text.indexOf(phrase);
+  if (i < 0) return false;
+  const edge = (ch: string | undefined) => !ch || !/[\p{L}\p{N}]/u.test(ch);
+  return edge(text[i - 1]) && edge(text[i + phrase.length]);
+}
+
 /** Where a prerequisite was taught in the learner's library, if anywhere. */
 export function findPriorTeaching(name: string, videos: VideoRecord[], exceptVideoId: string): Connection | null {
   const key = name.toLowerCase();
   for (const v of [...videos].sort((a, b) => b.updatedAt - a.updatedAt)) {
     if (v.videoId === exceptVideoId) continue;
-    const c = v.map?.concepts.find((x) => x.name.toLowerCase() === key || key.includes(x.name.toLowerCase()) || x.name.toLowerCase().includes(key));
+    const c = v.map?.concepts.find((x) => x.name.toLowerCase() === key || hasPhrase(key, x.name.toLowerCase()) || hasPhrase(x.name.toLowerCase(), key));
     if (c) return { concept: c.name, videoId: v.videoId, title: v.title, at: c.definedAt };
   }
   return null;
@@ -266,8 +275,8 @@ export function carryOver(earlier: VideoRecord[], map: VideoMap, current: Learne
     for (const v of earlier) {
       const hit = Object.entries(v.learner.concepts).find(([n]) => n.toLowerCase() === c.name.toLowerCase())?.[1];
       if (!hit) continue;
-      if (hit.state === 'shaky') state = 'shaky';
-      else if (hit.state === 'solid' && state !== 'shaky') state = 'solid';
+      // `earlier` is in course order, so the latest evidence wins.
+      if (hit.state === 'shaky' || hit.state === 'solid') state = hit.state;
     }
     if (state) {
       concepts[c.name] = { state, updatedAt: now, evidence: ['earlier in this course'] };
@@ -329,5 +338,20 @@ export function layoutGraph(nodes: GraphNode[]): PlacedNode[] {
  */
 export function mergeMigrated(existing: VideoRecord | null, migrated: VideoRecord): VideoRecord {
   if (!existing) return migrated;
-  return { ...migrated, ...existing, map: existing.map ?? migrated.map };
+  // The existing record wins field by field, but only where it actually holds something: a record
+  // that was merely touched is all defaults, and those must not erase the migrated data.
+  const list = <T>(a: T[], b: T[]) => (a.length ? a : b);
+  return {
+    ...migrated,
+    ...existing,
+    title: existing.title || migrated.title,
+    map: existing.map ?? migrated.map,
+    learner: Object.keys(existing.learner.concepts).length ? existing.learner : migrated.learner,
+    known: list(existing.known, migrated.known),
+    quiz: list(existing.quiz, migrated.quiz),
+    checkpointResults: list(existing.checkpointResults, migrated.checkpointResults),
+    teachBacks: list(existing.teachBacks, migrated.teachBacks),
+    lastT: Math.max(existing.lastT, migrated.lastT),
+    createdAt: Math.min(existing.createdAt, migrated.createdAt),
+  };
 }

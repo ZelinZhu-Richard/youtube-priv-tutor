@@ -35,7 +35,7 @@ Grounding
 - Cite moments in the video as [m:ss] or [h:mm:ss], using only times that appear in the transcript or captions you were given. The learner's panel turns these into links that seek the video.
 - Keep what the video says separate from background knowledge it did not cover. Introduce the latter with "Beyond the video:".
 - If the frame and the captions disagree, or the frame is unreadable, blurry or does not show what the question is about, say so plainly instead of guessing.
-- If the learner asks about something shown earlier (a previous slide or formula), you only have the current frame: answer from the transcript, and end with "Jump to [m:ss] and ask again so I can see that screen."
+- If the learner asks about something shown earlier (a previous slide or formula): when the <screen> note says an earlier frame is attached, use it. Otherwise you only have the current frame: answer from the transcript, and end with "Jump to [m:ss] and ask again so I can see that screen."
 
 Technical content
 - When the question concerns an equation, code, a proof step or a diagram on screen, first transcribe what you see (equation in LaTeX, code in a fenced block), so the learner can check you read it correctly, then explain.
@@ -60,13 +60,21 @@ export interface VideoContextInput {
   withheld?: boolean;
 }
 
+/**
+ * Text that comes from the video (title, channel, chapter names, captions) is data. A zero-width
+ * space after "<" stops it from closing or opening the tags this prompt uses as structure.
+ */
+export function inert(text: string): string {
+  return text.replace(/<(?=\/?[a-zA-Z_])/g, '<\u200b');
+}
+
 /** Block 1 of the cached prefix: metadata, chapters and (in full mode) the whole transcript. */
 export function videoContextText(input: VideoContextInput): string {
   const { meta, chunks, trackLabel, isAuto, mode, withheld } = input;
-  const lines = ['<video_context>', `Title: ${meta.title}`, `Channel: ${meta.channel}`, `Duration: ${formatTime(meta.lengthSeconds)}`];
+  const lines = ['<video_context>', `Title: ${inert(meta.title)}`, `Channel: ${inert(meta.channel)}`, `Duration: ${formatTime(meta.lengthSeconds)}`];
   if (meta.chapters.length) {
     lines.push('Chapters:');
-    for (const c of meta.chapters) lines.push(`[${formatTime(c.start)}] ${c.title}`);
+    for (const c of meta.chapters) lines.push(`[${formatTime(c.start)}] ${inert(c.title)}`);
   }
   if (withheld) {
     lines.push('Captions: the learner chose not to send them. Answer from the frame and the question, and say when you cannot tell what was said.');
@@ -75,7 +83,7 @@ export function videoContextText(input: VideoContextInput): string {
   } else {
     lines.push(`Captions: ${trackLabel ?? 'unknown track'}${isAuto ? ' (automatic captions: technical terms may be garbled)' : ''}`);
     if (mode === 'full') {
-      lines.push('<transcript>', renderCues(chunks), '</transcript>');
+      lines.push('<transcript>', inert(renderCues(chunks)), '</transcript>');
     } else {
       lines.push('This video is long, so the full transcript is not included. Use the lesson map below and the captions sent with each request.');
     }
@@ -135,6 +143,8 @@ export interface TurnInput {
   section: MapSection | null;
   /** Captions for the local window; null when the learner removed the caption chip. */
   localCaptions: { from: number; to: number; cues: Cue[] } | null;
+  /** True only when the learner switched captions off for this question. */
+  captionsWithheld?: boolean;
   frame: FrameInput | null;
   frameNote: string | null;
   crop: FrameInput | null;
@@ -225,9 +235,9 @@ export function turnText(input: TurnInput): string {
   lines.push('</moment>');
   if (input.localCaptions) {
     const { from, to, cues } = input.localCaptions;
-    lines.push(`<captions_near_now from="${formatTime(from)}" to="${formatTime(to)}">`, cues.length ? renderCues(cues) : '(no captions in this range)', '</captions_near_now>');
+    lines.push(`<captions_near_now from="${formatTime(from)}" to="${formatTime(to)}">`, cues.length ? inert(renderCues(cues)) : '(no captions in this range)', '</captions_near_now>');
   } else {
-    lines.push('<captions_near_now>The learner chose not to include the local captions.</captions_near_now>');
+    lines.push(`<captions_near_now>${input.captionsWithheld ? 'The learner chose not to include captions.' : 'No captions are attached for this moment.'}</captions_near_now>`);
   }
   lines.push(`<screen>${screenNote(input)}</screen>`);
   if (input.learnerDigest) lines.push('<learner>', input.learnerDigest, '</learner>');
@@ -319,7 +329,7 @@ Question: ${cp.question}
 Model answer (for you; do not quote it wholesale): ${cp.answer || '(none provided)'}
 </checkpoint>
 <captions_near_checkpoint>
-${renderCues(localCaptions)}
+${inert(renderCues(localCaptions))}
 </captions_near_checkpoint>
 <learner_answer${confidence ? ` confidence="${confidence}"` : ''}>
 ${learnerAnswer.trim()}
@@ -336,14 +346,14 @@ Title: ${section.title}
 Key idea: ${section.keyIdea}
 </section>
 <captions_in_section>
-${renderCues(sectionCaptions)}
+${inert(renderCues(sectionCaptions))}
 </captions_in_section>
 <learner_explanation>
 ${text.trim()}
 </learner_explanation>
 <task>
 The learner is explaining this section back in their own words. Critique it like a good tutor: say what is right, then the gaps, errors or vague spots (be specific, link [m:ss] moments to rewatch), and one question that would test the weakest point. Reply in the language of the learner's explanation.
-Then end with exactly two lines:
+Then end with exactly two lines (keep the labels and the verdict word in English, whatever language the rest is in):
 VERDICT: solid | gaps   (solid only if the core idea is correct and complete)
 CONCEPTS: the concept names from the lesson map this section covers, separated by semicolons
 </task>`;
@@ -358,7 +368,7 @@ Prefer questions that make the learner do something: predict an output, do the n
 </task>`;
 }
 
-const GRADE_TAIL = `Then end with exactly these lines:
+const GRADE_TAIL = `Then end with exactly these lines (keep the labels and the verdict word in English, whatever language the rest is in):
 VERDICT: correct | partial | incorrect   (choose one)
 CONCEPTS: the concept names from the lesson map this tests, separated by semicolons
 MISCONCEPTION: the misconception in one short phrase, or "none"
@@ -427,7 +437,7 @@ ${text.trim()}
 </learner_summary>
 <task>
 The learner wrote the video's main idea in their own words (a Feynman summary). Grade it against the lesson map: what they captured well, what is wrong, and what is missing. Be specific and kind; link moments to rewatch as [m:ss]. Reply in the language of the summary.
-Then end with exactly these lines:
+Then end with exactly these lines (keep the labels and the verdict word in English, whatever language the rest is in):
 VERDICT: solid | gaps
 MISSING: the key ideas that are missing, separated by semicolons, or "none"
 </task>`;
@@ -458,34 +468,56 @@ export interface VerdictParse<V extends string> {
   fields: Record<string, string>;
 }
 
-/** Strips and parses the trailing "VERDICT: …" / "CONCEPTS: …" lines. */
+const TAIL_LINE = /^\s*\**(VERDICT|CONCEPTS|MISCONCEPTION|CORRECTION|MISSING)\**\s*[:：]\s*(.*)$/i;
+
+/** Reads a verdict word, tolerating a translated or reworded one ("正确", "Partially correct"). */
+function readVerdict<V extends string>(value: string, allowed: readonly V[]): V | null {
+  const first = /^([a-zA-Z-]+)/.exec(value)?.[1]?.toLowerCase() as V | undefined;
+  if (first && allowed.includes(first)) return first;
+  const v = value.toLowerCase();
+  const pick = (w: string) => (allowed.includes(w as V) ? (w as V) : null);
+  if (/incorrect|not correct|wrong|不正确|错误|不对/.test(v)) return pick('incorrect');
+  if (/partial|partly|部分/.test(v)) return pick('partial');
+  if (/correct|right|正确|对/.test(v)) return pick('correct');
+  if (/gap|incomplete|缺|不足|不完整/.test(v)) return pick('gaps');
+  if (/solid|complete|扎实|牢固|完整/.test(v)) return pick('solid');
+  return null;
+}
+
+/**
+ * Strips and parses the block of "VERDICT: …" / "CONCEPTS: …" / "MISCONCEPTION: …" lines at the end
+ * of an answer. Only the trailing block is removed, so a feedback line that happens to start with
+ * "Misconception:" stays in the body. If the model wrote something after the block, VERDICT and
+ * CONCEPTS lines are still found (and removed) wherever they are.
+ */
 export function parseVerdict<V extends string>(text: string, allowed: readonly V[]): VerdictParse<V> {
   const lines = text.replace(/\s+$/, '').split('\n');
   let verdict: V | null = null;
-  let concepts: string[] = [];
+  let concepts: string[] | null = null;
   const fields: Record<string, string> = {};
-  const keep: string[] = [];
-  for (const line of lines) {
-    const f = /^\s*\**(MISCONCEPTION|CORRECTION|MISSING)\**\s*[:：]\s*(.*)$/i.exec(line);
-    if (f) {
-      const v = f[2].replace(/\*+/g, '').trim();
-      fields[f[1].toLowerCase()] = /^(none|n\/a|-|无)\.?$/i.test(v) ? '' : v;
-      continue;
-    }
-    const v = /^\s*\**VERDICT\**\s*[:：]\s*\**\s*([a-zA-Z-]+)/i.exec(line);
-    const c = /^\s*\**CONCEPTS\**\s*[:：]\s*(.*)$/i.exec(line);
-    if (v) {
-      const w = v[1].toLowerCase() as V;
-      if (allowed.includes(w)) verdict = w;
-      continue;
-    }
-    if (c) {
-      concepts = c[1].split(/[;；]/).map((x) => x.replace(/\*+/g, '').trim()).filter(Boolean);
-      continue;
-    }
-    keep.push(line);
+  const take = (key: string, raw: string) => {
+    const value = raw.replace(/\*+/g, '').trim();
+    if (key === 'VERDICT') verdict ??= readVerdict(value, allowed);
+    else if (key === 'CONCEPTS') concepts ??= value.split(/[;；]/).map((x) => x.trim()).filter(Boolean);
+    else if (!(key.toLowerCase() in fields)) fields[key.toLowerCase()] = /^(none|n\/a|-|无)\.?$/i.test(value) ? '' : value;
+  };
+  let end = lines.length;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (!lines[i].trim()) continue;
+    const m = TAIL_LINE.exec(lines[i]);
+    if (!m) break;
+    take(m[1].toUpperCase(), m[2]);
+    end = i;
   }
-  return { body: keep.join('\n').trim(), verdict, concepts, fields };
+  let keep = lines.slice(0, end);
+  if (verdict === null) {
+    keep = keep.filter((line) => {
+      const m = /^\s*\**(VERDICT|CONCEPTS)\**\s*[:：]\s*(.*)$/.exec(line);
+      if (m) take(m[1], m[2]);
+      return !m;
+    });
+  }
+  return { body: keep.join('\n').trim(), verdict, concepts: concepts ?? [], fields };
 }
 
 /** Strips the trailing "ALTERNATIVES:" block of an "I'm lost" answer and returns its items. */

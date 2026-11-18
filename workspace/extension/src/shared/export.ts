@@ -7,7 +7,8 @@ import type { ZipEntry } from './zip';
 /** Splits markdown into code (fenced or inline) and prose segments so transforms skip code. */
 export function splitCode(md: string): { code: boolean; text: string }[] {
   const out: { code: boolean; text: string }[] = [];
-  const re = /(^|\n)(```|~~~)[^\n]*\n[\s\S]*?(?:\n\2[^\n]*(?=\n|$)|$)|`[^`\n]+`/g;
+  // Fences may be indented (a code block under a list item).
+  const re = /(^|\n)[ \t]*(```|~~~)[^\n]*\n[\s\S]*?(?:\n[ \t]*\2[^\n]*(?=\n|$)|$)|`[^`\n]+`/g;
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(md))) {

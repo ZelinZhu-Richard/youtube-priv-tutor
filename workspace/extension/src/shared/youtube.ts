@@ -10,8 +10,6 @@ export const YT = {
   videoSelectors: ['#movie_player video.html5-main-video', 'video.html5-main-video', '#movie_player video', 'ytd-player video'],
   /** The player element that exposes YouTube's player API (getPlayerResponse, setOption, ...). */
   playerSelector: '#movie_player',
-  /** Current chapter title shown in the player chrome. */
-  chapterTitleSelector: '.ytp-chapter-title-content',
   /** The CC button; aria-pressed="true" while captions show. */
   subtitlesButtonSelector: '.ytp-subtitles-button',
   /** Class on the player while an ad plays. */
@@ -137,7 +135,12 @@ export function originalLanguage(playerResponse: unknown, tracks: CaptionTrackIn
   const idx = typeof renderer?.defaultAudioTrackIndex === 'number' ? renderer.defaultAudioTrackIndex : -1;
   const id = str(obj(audio[idx])?.audioTrackId);
   const lang = id.split('.')[0];
-  return lang && /^[a-zA-Z]{2,3}(-[a-zA-Z0-9]+)*$/.test(lang) ? lang : null;
+  if (lang && /^[a-zA-Z]{2,3}(-[a-zA-Z0-9]+)*$/.test(lang)) return lang;
+  // Last resort: the caption track YouTube itself marks as the default for the audio, which is a
+  // better guess than whichever track happens to be listed first.
+  const def = obj(audio[idx] ?? audio[0])?.defaultCaptionTrackIndex;
+  const code = typeof def === 'number' ? str(obj(arr(renderer?.captionTracks)[def])?.languageCode) : '';
+  return code || null;
 }
 
 export function parsePlayerResponse(playerResponse: unknown): Omit<VideoMeta, 'chapters'> | null {

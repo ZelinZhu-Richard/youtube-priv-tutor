@@ -23,7 +23,9 @@ interface PyAssets {
   lock: string;
 }
 
-const LOCKDOWN = `for (const k of ['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource', 'importScripts', 'indexedDB', 'caches', 'BroadcastChannel']) { try { Object.defineProperty(self, k, { value: undefined, configurable: false }); } catch {} }`;
+// Defence in depth only: the page CSP (connect-src 'none') is what actually blocks the network.
+// Worker is on the list because a nested worker would start with an untouched global.
+const LOCKDOWN = `for (const k of ['fetch', 'XMLHttpRequest', 'WebSocket', 'WebSocketStream', 'WebTransport', 'EventSource', 'importScripts', 'indexedDB', 'caches', 'BroadcastChannel', 'Worker', 'SharedWorker']) { try { Object.defineProperty(self, k, { value: undefined, configurable: false }); } catch {} }`;
 
 const JS_WORKER = `${LOCKDOWN}
 const AsyncFunction = (async () => {}).constructor;
@@ -32,9 +34,9 @@ self.onmessage = async (e) => {
   try {
     // Async, so exercises and tests may use await; the run is over when the body settles.
     await new AsyncFunction('__logs', '__results', e.data.src)(logs, results);
-    self.postMessage({ stdout: logs.join('\\n'), error: null, tests: results });
+    self.postMessage({ stdout: logs.join('\\n').slice(-20000), error: null, tests: results });
   } catch (err) {
-    self.postMessage({ stdout: logs.join('\\n'), error: String((err && err.stack) || err), tests: results });
+    self.postMessage({ stdout: logs.join('\\n').slice(-20000), error: String((err && err.stack) || err), tests: results });
   }
 };`;
 
@@ -55,7 +57,7 @@ self.onmessage = async (e) => {
       const { loadPyodide } = await import(blobUrl(a.pyodideMjs));
       const asm = await import(blobUrl(a.asmMjs));
       py = await loadPyodide({ indexURL: 'https://pyodide.invalid/', createPyodideModule: asm.default, lockFileContents: JSON.parse(a.lock), stdout: () => {}, stderr: () => {} });
-      for (const k of ['XMLHttpRequest', 'WebSocket', 'EventSource', 'importScripts', 'indexedDB', 'caches']) { try { Object.defineProperty(self, k, { value: undefined }); } catch {} }
+      for (const k of ['XMLHttpRequest', 'WebSocket', 'WebSocketStream', 'WebTransport', 'EventSource', 'importScripts', 'indexedDB', 'caches', 'BroadcastChannel', 'Worker', 'SharedWorker']) { try { Object.defineProperty(self, k, { value: undefined }); } catch {} }
       self.postMessage({ type: 'ready' });
     } catch (err) {
       self.postMessage({ type: 'init-error', error: String((err && err.stack) || err) });
@@ -122,7 +124,8 @@ async function runPy(m: RunMsg) {
   if (!assets) return result(m.id, { stdout: '', error: 'Python is not available (the Pyodide files were not provided).', tests: [] }, 0);
   py ??= startPython();
   try {
-    await py.ready;
+    // Never wait on start-up forever: a stuck init would hold up every later run.
+    await Promise.race([py.ready, new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timed out loading Pyodide')), 60_000))]);
   } catch (e) {
     py.worker.terminate();
     py = null;
@@ -155,7 +158,12 @@ window.addEventListener('message', (e: MessageEvent) => {
   if (e.source !== window.parent) return;
   const m = e.data as RunMsg | AssetsMsg;
   if (m?.type === 'py-assets') assets = m.assets;
-  else if (m?.type === 'run') queue = queue.then(() => (m.language === 'python' ? runPy(m) : runJs(m)));
+  else if (m?.type === 'run') {
+    // A run that throws must report its error and leave the queue usable for the next one.
+    queue = queue
+      .then(() => (m.language === 'python' ? runPy(m) : runJs(m)))
+      .catch((err) => result(m.id, { stdout: '', error: `The sandbox could not run this: ${String(err)}`, tests: [] }, 0));
+  }
 });
 
 reply({ type: 'ready' });

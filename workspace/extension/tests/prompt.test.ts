@@ -92,9 +92,9 @@ describe('turnText', () => {
     expect(t).toContain('<question>\nwhy do we subtract the max?\n</question>');
   });
   it('explains missing frame and removed captions', () => {
-    const t = turnText({ ...baseTurn, frame: null, frameNote: 'the frame was blank (protected video)', localCaptions: null });
+    const t = turnText({ ...baseTurn, frame: null, frameNote: 'the frame was blank (protected video)', localCaptions: null, captionsWithheld: true });
     expect(t).toContain('No current frame is attached: the frame was blank');
-    expect(t).toContain('chose not to include the local captions');
+    expect(t).toContain('chose not to include captions');
   });
   it('describes a selected crop and the language fallback when nothing was typed', () => {
     const t = turnText({ ...baseTurn, question: '', crop: { mediaType: 'image/png', data: 'B', width: 400, height: 200 } });

@@ -232,8 +232,18 @@ function main() {
     send({ type: 'evt/video', videoId: id, meta: null });
   }
 
+  /** The worker keeps page metadata for recent videos only; send it again when the learner turns
+   *  to this tab, so a tab opened long ago still works. */
+  let metaSentAt = 0;
+  function resendMeta() {
+    if (!meta || Date.now() - metaSentAt < 60_000) return;
+    metaSentAt = Date.now();
+    sendToBackground({ type: 'bg/meta-put', meta }).catch(() => undefined);
+  }
+
   function setMeta(m: VideoMeta) {
     meta = m;
+    metaSentAt = Date.now();
     for (const w of metaWaiters) w(m);
     metaWaiters = [];
     sendToBackground({ type: 'bg/meta-put', meta: m }).catch(() => undefined);
@@ -302,6 +312,7 @@ function main() {
   }
 
   async function onAskButton() {
+    resendMeta();
     engagedUntil = Date.now() + ENGAGE_MS;
     findVideo()?.pause();
     if (document.fullscreenElement) return openOverlay('ask-moment');
@@ -504,6 +515,7 @@ function main() {
         v.playbackRate = Math.min(2, Math.max(0.5, msg.rate));
         return { ok: true, rate: v.playbackRate };
       case 'cs/engage':
+        resendMeta();
         engagedUntil = Date.now() + ENGAGE_MS;
         frameBuffer = msg.frameBuffer;
         return { ok: true };
@@ -511,12 +523,14 @@ function main() {
         showToast(msg.text);
         return { ok: true };
       case 'cs/command':
+        resendMeta();
         if (document.fullscreenElement) {
           openOverlay(msg.action);
           return { ok: true, handled: true };
         }
         return { ok: true, handled: false };
       case 'cs/bookmark-data': {
+        resendMeta();
         if (!v || !videoId) return { ok: false, message: 'No video.' };
         const t = v.currentTime;
         const cue = transcriptCues.filter((c) => c.start <= t + 0.5).pop();

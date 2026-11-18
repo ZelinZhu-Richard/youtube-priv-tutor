@@ -182,7 +182,8 @@ export function removeRollingOverlap(cues: Cue[]): Cue[] {
       out.push({ ...cue });
       continue;
     }
-    if (prev.text === cue.text || prev.text.endsWith(cue.text)) {
+    // A repeated single word or pair ("no", "thank you") is speech, not a rolling duplicate.
+    if (prev.text === cue.text || (words(cue.text).length >= 3 && prev.text.endsWith(cue.text))) {
       // Whole cue already shown; extend the previous cue instead of duplicating it.
       prev.duration = Math.max(prev.duration, cue.start + cue.duration - prev.start);
       continue;

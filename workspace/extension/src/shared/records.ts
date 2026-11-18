@@ -4,7 +4,7 @@ import * as db from './db';
 import { applyLearnerEvent, type LearnerEvent } from './learner';
 import { isSureButWrong } from './practice';
 import { broadcast, uid } from './rpc';
-import { checkpointCard, conceptCard, conceptCardId, mistakeCard, schedule, upsertCard, type Grade } from './srs';
+import { checkpointCard, conceptCard, mistakeCard, schedule, upsertCard, type Grade } from './srs';
 import type { Bookmark, CheckpointResult, FeynmanResult, Mistake, PracticeProblem, ProblemAttempt, ReviewCard, TeachBackResult, VideoRecord } from './types';
 
 export type DataKind = 'video' | 'history' | 'cards' | 'bookmarks' | 'mistakes' | 'problems' | 'frames';
@@ -41,7 +41,10 @@ export async function learn(videoId: string, ev: LearnerEvent): Promise<VideoRec
 
 /** Logs a mistake; `card: false` when the item already has its own review card (missed checkpoints). */
 export async function addMistake(m: Omit<Mistake, 'id' | 'createdAt'>, videoTitle: string, opts: { card?: boolean } = {}): Promise<Mistake> {
-  const full: Mistake = { ...m, id: uid('mk'), createdAt: Date.now() };
+  // The same question missed again updates its entry (and so its one review card) instead of
+  // piling up duplicates.
+  const prior = (await db.byVideo('mistakes', m.videoId)).find((x) => x.source === m.source && x.question === m.question);
+  const full: Mistake = { ...m, id: prior?.id ?? uid('mk'), createdAt: Date.now() };
   await db.put('mistakes', full);
   if (opts.card !== false) await upsertCards([mistakeCard(full, videoTitle)], true);
   notifyChanged(m.videoId, ['mistakes', 'cards']);
@@ -72,15 +75,10 @@ export async function saveFeynman(videoId: string, r: FeynmanResult): Promise<Vi
   return v;
 }
 
-export async function saveProblem(p: PracticeProblem): Promise<void> {
-  await db.put('problems', p);
-  notifyChanged(p.videoId, ['problems']);
-}
-
 /** Records an attempt; wrong or partial attempts go to the mistake log and the review queue. */
 export async function recordAttempt(problem: PracticeProblem, attempt: ProblemAttempt): Promise<PracticeProblem> {
-  const next = { ...problem, attempts: [...problem.attempts, attempt] };
-  await db.put('problems', next);
+  // Append inside one transaction: the caller's copy was read before a multi-second grading call.
+  const next = (await db.update('problems', problem.id, (cur) => ({ ...(cur ?? problem), attempts: [...(cur ?? problem).attempts, attempt] }))) ?? { ...problem, attempts: [...problem.attempts, attempt] };
   const v = await learn(problem.videoId, { type: 'checkpoint', verdict: attempt.verdict, concepts: [problem.concept], note: `practice level ${problem.level}` });
   if (attempt.verdict !== 'correct') {
     await addMistake(
@@ -128,8 +126,4 @@ export async function updateBookmark(b: Bookmark): Promise<void> {
 export async function deleteBookmark(b: Bookmark): Promise<void> {
   await db.del('bookmarks', b.id);
   notifyChanged(b.videoId, ['bookmarks']);
-}
-
-export async function removeConceptCard(videoId: string, concept: string): Promise<void> {
-  await db.del('cards', conceptCardId(videoId, concept));
 }

@@ -146,7 +146,8 @@ export function buildJsHarness(code: string, tests: { name: string; code: string
     )
     .join('\n');
   return `const __fmt = (v) => { if (typeof v === 'string') return v; try { return JSON.stringify(v); } catch { return String(v); } };
-const console = { log: (...a) => __logs.push(a.map(__fmt).join(' ')), info: (...a) => __logs.push(a.map(__fmt).join(' ')), warn: (...a) => __logs.push(a.map(__fmt).join(' ')), error: (...a) => __logs.push(a.map(__fmt).join(' ')) };
+const __log = (...a) => { if (__logs.length < 2000) __logs.push(a.map(__fmt).join(' ').slice(0, 2000)); };
+const console = { log: __log, info: __log, warn: __log, error: __log };
 function assert(cond, msg) { if (!cond) throw new Error(msg || 'assertion failed'); }
 function assertEqual(actual, expected, msg) { const a = JSON.stringify(actual), b = JSON.stringify(expected); if (a !== b) throw new Error((msg ? msg + ': ' : '') + 'expected ' + b + ', got ' + a); }
 {

@@ -26,10 +26,6 @@ export function schedule(card: ReviewCard, grade: Grade, now = Date.now()): Revi
   return { ...card, ease: Math.round(ease * 100) / 100, interval, reps: reps + 1, lapses, due: now + interval * DAY, lastReviewed: now, priority: 0 };
 }
 
-export function isDue(card: ReviewCard, now = Date.now()): boolean {
-  return card.due <= now;
-}
-
 /**
  * Review order: high-priority cards ("sure but wrong" misconceptions) first; within each priority
  * band, cards are interleaved round-robin across videos so a session mixes subjects (§13.4).

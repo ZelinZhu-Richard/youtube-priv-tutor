@@ -9,14 +9,16 @@ export interface GlossaryEntry {
   source: 'map' | 'frame';
 }
 
-const norm = (s: string) => s.replace(/\s+/g, '').toLowerCase();
+/** Symbols keep their case: X and x, or \\Delta and \\delta, are different notation. */
+const normSymbol = (s: string) => s.replace(/\s+/g, '');
+const normTerm = (s: string) => s.replace(/\s+/g, '').toLowerCase();
 
 /** Symbols (notation) and terms (concepts) from the lesson map, plus entries read from frames. */
 export function glossaryEntries(map: VideoMap | null, extra: NotationEntry[]): GlossaryEntry[] {
   const out: GlossaryEntry[] = [];
   const seen = new Set<string>();
   const add = (e: GlossaryEntry) => {
-    const k = `${e.kind}:${norm(e.label)}`;
+    const k = `${e.kind}:${e.kind === 'symbol' ? normSymbol(e.label) : normTerm(e.label)}`;
     if (seen.has(k)) return;
     seen.add(k);
     out.push(e);
@@ -33,10 +35,10 @@ export function glossaryUpTo(entries: GlossaryEntry[], t: number): GlossaryEntry
 
 /** Merges notation read from a frame into the stored extras, skipping symbols already known. */
 export function mergeNotation(existing: NotationEntry[], map: VideoMap | null, incoming: NotationEntry[]): NotationEntry[] {
-  const known = new Set([...(map?.notation ?? []), ...existing].map((n) => norm(n.symbol)));
+  const known = new Set([...(map?.notation ?? []), ...existing].map((n) => normSymbol(n.symbol)));
   const out = [...existing];
   for (const n of incoming) {
-    const k = norm(n.symbol);
+    const k = normSymbol(n.symbol);
     if (!k || known.has(k)) continue;
     known.add(k);
     out.push(n);

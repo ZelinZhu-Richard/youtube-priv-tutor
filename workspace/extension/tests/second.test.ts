@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { emptyVideo } from '../src/shared/db';
 import { assembleNotesZip, frameFileName, slug, toMarkdown } from '../src/shared/export';
-import { pruneIds, hashedFrames, NO_HASH, detectBackwardReference, dHash, edgeDensity, hamming, isNearDuplicate, nearestFrame, previousDistinct, pruneFrames, toGray } from '../src/shared/frames';
+import { pruneIds, hashedFrames, NO_HASH, detectBackwardReference, dHash, edgeDensity, hamming, isNearDuplicate, nearestFrame, previousDistinct, toGray } from '../src/shared/frames';
 import { glossaryEntries, glossaryUpTo, mergeNotation } from '../src/shared/glossary';
 import { applyLearnerEvent, EMPTY_LEARNER } from '../src/shared/learner';
 import {
@@ -132,10 +132,6 @@ describe('frame buffer', () => {
     { id: 'c', t: 40, hash: 'ffffffffffffffff', kind: 'sample' as const, createdAt: 3 },
     { id: 'd', t: 55, hash: 'ffffffff00000000', kind: 'bookmark' as const, createdAt: 4 },
   ];
-  it('keeps the newest samples and every bookmark frame', () => {
-    expect(pruneFrames(frames, 2)).toEqual(['a']);
-    expect(pruneFrames(frames, 0)).toEqual(['c', 'b', 'a']);
-  });
   it('finds the nearest frame and the n-th previous distinct screen', () => {
     expect(nearestFrame(frames, 30)?.id).toBe('b');
     expect(nearestFrame(frames, 300, 20)).toBeNull();

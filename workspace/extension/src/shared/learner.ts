@@ -21,10 +21,6 @@ export function canonicalConcept(name: string, map: VideoMap | null): string {
   return hit ? hit.name : n;
 }
 
-export function conceptState(model: LearnerModel, name: string): ConceptState {
-  return model.concepts[name]?.state ?? 'unseen';
-}
-
 /** The state a concept moves to for an event, or null for "no change". */
 function target(event: LearnerEvent, current: ConceptState): ConceptState | null {
   switch (event.type) {

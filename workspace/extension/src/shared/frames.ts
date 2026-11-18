@@ -58,12 +58,6 @@ export interface FrameLike {
   createdAt: number;
 }
 
-/** Ids of sampled frames to delete so at most `max` remain; bookmark and question frames are kept. */
-export function pruneFrames(frames: FrameLike[], max = 40): string[] {
-  const samples = frames.filter((f) => f.kind === 'sample').sort((a, b) => b.createdAt - a.createdAt);
-  return samples.slice(max).map((f) => f.id);
-}
-
 export function nearestFrame<F extends FrameLike>(frames: F[], t: number, maxDistance = Infinity): F | null {
   let best: F | null = null;
   for (const f of frames) if (!best || Math.abs(f.t - t) < Math.abs(best.t - t)) best = f;
@@ -116,7 +110,7 @@ export function detectBackwardReference(question: string): BackwardRef | null {
   if (ago) return { kind: 'relative', steps: Math.min(5, NUMBER_WORDS[ago[1]] ?? (Number(ago[1]) || 1)) };
   const zh = /(上|前)([一两二三四]?)(页|张|个画面|个幻灯片)/.exec(question);
   if (zh) return { kind: 'relative', steps: NUMBER_WORDS[zh[2]] ?? 1 };
-  if (/\b(previous|last|earlier|prior)\s+(slide|screen|frame|page|formula|equation|diagram|code|example)\b/.test(q) || /\b(earlier|before|a moment ago|back when)\b/.test(q) || /(之前|刚才|前面)/.test(question)) {
+  if (/\b(previous|last|earlier|prior)\s+(slide|screen|frame|page|formula|equation|diagram|code|example)\b/.test(q) || /\b(a moment ago|shown earlier|from earlier|from before)\b/.test(q) || /(之前|刚才|前面)的?那?(一?[页张个]|公式|图|代码|幻灯片|画面|例子|屏幕|式子)/.test(question)) {
     return { kind: 'relative', steps: 1 };
   }
   return null;

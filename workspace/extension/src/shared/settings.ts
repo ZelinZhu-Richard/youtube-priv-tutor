@@ -57,8 +57,15 @@ export function normalizeSettings(raw: unknown): Settings {
   return s;
 }
 
+/** Matches an exact id or a dated snapshot of it ("claude-opus-5-5-20260801"). */
+const matchModel = (id: string) => MODELS.find((m) => id === m.id || id.startsWith(`${m.id}-`));
+
+export function isKnownModel(id: string): boolean {
+  return !!matchModel(id);
+}
+
 export function modelInfo(id: string) {
-  return MODELS.find((m) => m.id === id) ?? MODELS[0];
+  return matchModel(id) ?? MODELS[0];
 }
 
 export interface UsageTotals {

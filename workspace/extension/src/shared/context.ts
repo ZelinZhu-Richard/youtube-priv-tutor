@@ -35,7 +35,8 @@ export type TranscriptMode = 'full' | 'summary';
  * that, a chapter-level summary (the video map) plus the local window (§5).
  */
 export function chooseTranscriptMode(durationSec: number, transcriptTokens: number, fullUpToMinutes: number): TranscriptMode {
-  const maxTokens = Math.max(20_000, fullUpToMinutes * 60 * 4); // ~4 tokens/s of speech, generous
+  // English speech runs about 4 tokens/s; Mandarin about 6 at one token per character. Allow 8.
+  const maxTokens = Math.max(20_000, fullUpToMinutes * 60 * 8);
   return durationSec <= fullUpToMinutes * 60 && transcriptTokens <= maxTokens ? 'full' : 'summary';
 }
 

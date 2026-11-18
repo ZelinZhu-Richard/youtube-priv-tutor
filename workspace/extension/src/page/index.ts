@@ -29,7 +29,7 @@ if (!w.__ytTutorPageInstalled) {
 
 function install() {
   const captured = new Map<string, CapturedTimedText & { videoId: string; lang: string; kind: string }>();
-  const waiters = new Set<{ videoId: string; lang: string; resolve: (c: CapturedTimedText) => void }>();
+  const waiters = new Set<{ videoId: string; lang: string; isAuto: boolean; resolve: (c: CapturedTimedText) => void }>();
   let lastNav: { videoId: string; data: PlayerData } | null = null;
 
   const post = (msg: FromPage) => window.postMessage(msg, location.origin);
@@ -44,7 +44,7 @@ function install() {
     // Only the current video's track is read back; keep a few so a quick back/forward still hits.
     while (captured.size > 4) captured.delete(captured.keys().next().value as string);
     for (const wt of [...waiters]) {
-      if (wt.videoId === p.videoId && langMatches(wt.lang, p.lang)) {
+      if (wt.videoId === p.videoId && langMatches(wt.lang, p.lang) && (p.kind === 'asr') === wt.isAuto) {
         waiters.delete(wt);
         wt.resolve({ url, body });
       }
@@ -131,6 +131,7 @@ function install() {
     return (d as { currentVideoEndpoint?: { watchEndpoint?: { videoId?: string } } } | null)?.currentVideoEndpoint?.watchEndpoint?.videoId;
   }
 
+  let scanned: { videoId: string; chapters: ReturnType<typeof extractChapters>; playlist: ReturnType<typeof extractPlaylist> } | null = null;
   function playerData(): PlayerData | null {
     const vid = currentVideoId();
     if (!vid) return null;
@@ -146,8 +147,10 @@ function install() {
     let chapters = lastNav?.videoId === vid ? lastNav.data.chapters : [];
     let playlist = lastNav?.videoId === vid ? lastNav.data.playlist ?? null : null;
     if (initialDataVideoId(w.ytInitialData) === vid) {
-      if (!chapters.length) chapters = extractChapters(w.ytInitialData);
-      playlist ??= extractPlaylist(w.ytInitialData);
+      // Walking the page data is expensive and usually finds nothing; do it once per video.
+      if (scanned?.videoId !== vid) scanned = { videoId: vid, chapters: extractChapters(w.ytInitialData), playlist: extractPlaylist(w.ytInitialData) };
+      if (!chapters.length) chapters = scanned.chapters;
+      playlist ??= scanned.playlist;
     }
     return { playerResponse: trim(pr), chapters, playlist };
   }
@@ -167,11 +170,17 @@ function install() {
   });
 
   // ---- caption trigger (§3 step 2) ----
+  let triggerSeq = 0;
+  /** When the learner last toggled captions themselves (CC button or the "c" key). */
+  let userCaptionsAt = 0;
+  document.addEventListener('click', (e) => e.isTrusted && (e.target as Element | null)?.closest?.(YT.subtitlesButtonSelector) && (userCaptionsAt = Date.now()), true);
+  document.addEventListener('keydown', (e) => e.isTrusted && e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.metaKey && !e.altKey && (userCaptionsAt = Date.now()), true);
   async function triggerCaptions(videoId: string, lang: string, isAuto: boolean, timeoutMs: number): Promise<CapturedTimedText | null> {
     const existing = findCaptured(videoId, lang, isAuto);
     if (existing) return existing;
     const p = player();
     if (!p?.setOption) return null;
+    triggerSeq++; // a new capture supersedes any earlier one's pending re-checks
     // During an ad the player fetches the ad's captions and aborts the video's, and a caption
     // setting changed now can be re-applied when the ad ends. The content script waits for ads.
     if (p.classList.contains(YT.adShowingClass)) throw new Error('ad-showing');
@@ -188,9 +197,9 @@ function install() {
     } catch {
       before = null;
     }
-    let waiter: { videoId: string; lang: string; resolve: (c: CapturedTimedText) => void } | null = null;
+    let waiter: { videoId: string; lang: string; isAuto: boolean; resolve: (c: CapturedTimedText) => void } | null = null;
     const got = new Promise<CapturedTimedText | null>((resolve) => {
-      waiter = { videoId, lang, resolve };
+      waiter = { videoId, lang, isAuto, resolve };
       waiters.add(waiter);
       setTimeout(() => resolve(null), timeoutMs);
     });
@@ -214,7 +223,17 @@ function install() {
       }
     };
     restore();
-    if (!wasOn) for (const ms of [800, 2500]) setTimeout(() => p.isSubtitlesOn?.() === true && restore(), ms);
+    // The late re-checks only finish this capture's own restore. They stand down if another
+    // capture has started, the video changed, or the learner touched captions in the meantime.
+    const seq = ++triggerSeq;
+    const restoredAt = Date.now();
+    if (!wasOn) {
+      for (const ms of [800, 2500]) {
+        setTimeout(() => {
+          if (seq === triggerSeq && currentVideoId() === videoId && userCaptionsAt < restoredAt && p.isSubtitlesOn?.() === true) restore();
+        }, ms);
+      }
+    }
     return result;
   }
 

@@ -39,6 +39,7 @@ import {
 import * as records from '../shared/records';
 import { broadcast, uid } from '../shared/rpc';
 import { isTrustedSender, YOUTUBE_URL } from '../shared/trust';
+import { videoIdFromUrl } from '../shared/youtube';
 import { KEYS, type Settings } from '../shared/settings';
 import { addUsage, getProfile, getSettings } from '../shared/store';
 import { summarizeRun } from '../shared/practice';
@@ -106,7 +107,9 @@ async function touchVideo(meta: VideoMeta): Promise<VideoRecord> {
     channel: meta.channel || cur.channel,
     lengthSeconds: meta.lengthSeconds || cur.lengthSeconds,
     chapters: meta.chapters.length ? meta.chapters : cur.chapters,
-    playlist: meta.playlist ? { id: meta.playlist.id, title: meta.playlist.title, index: Math.max(0, meta.playlist.videoIds.indexOf(meta.videoId)) } : cur.playlist,
+    // The page lists a window of a long playlist; when this video is outside it, keep what is known
+    // rather than recording a made-up position.
+    playlist: meta.playlist && meta.playlist.videoIds.includes(meta.videoId) ? { id: meta.playlist.id, title: meta.playlist.title, index: meta.playlist.videoIds.indexOf(meta.videoId) } : cur.playlist,
   }));
 }
 
@@ -140,7 +143,10 @@ async function bookmark(tabId: number, note = ''): Promise<BackgroundResponses['
   const r = await chrome.tabs.sendMessage(tabId, { type: 'cs/bookmark-data' }).catch((e) => ({ ok: false as const, message: String(e) }));
   if (!r.ok) return { ok: false, message: r.message };
   const meta = await sessionMeta(r.videoId);
+  // A bookmark always belongs to a video record, so it shows in the library and can be cleared;
+  // without page metadata a bare record is created and filled in when the metadata next arrives.
   if (meta) await touchVideo(meta);
+  else if (!(await db.get('videos', r.videoId))) await db.updateVideo(r.videoId, () => ({}));
   let frameId: string | null = null;
   if (r.dataUrl && r.hash) frameId = await storeFrame(r.videoId, r.t, r.dataUrl, r.hash, r.width, r.height, 'bookmark');
   const b = await records.addBookmark({ videoId: r.videoId, t: r.t, frameId, caption: r.caption, note });
@@ -195,6 +201,12 @@ chrome.runtime.onMessage.addListener((msg: ToBackground | { type: 'evt/data'; ki
   return true;
 });
 
+/** A content script may only write data for the video its own tab is showing. */
+function ownsVideo(sender: chrome.runtime.MessageSender, videoId: string): boolean {
+  if (sender.url?.startsWith(`chrome-extension://${chrome.runtime.id}/`)) return true;
+  return videoIdFromUrl(sender.tab?.url ?? sender.url ?? '') === videoId;
+}
+
 async function handleMessage(msg: ToBackground, sender: chrome.runtime.MessageSender): Promise<BackgroundResponses[ToBackground['type']]> {
   switch (msg.type) {
     case 'bg/transcript-get': {
@@ -202,6 +214,7 @@ async function handleMessage(msg: ToBackground, sender: chrome.runtime.MessageSe
       return t && t.lang === msg.lang ? t : null;
     }
     case 'bg/transcript-put': {
+      if (!ownsVideo(sender, msg.transcript.videoId)) return { ok: false };
       await db.put('transcripts', msg.transcript);
       const meta = await sessionMeta(msg.transcript.videoId);
       if (meta) await touchVideo(meta);
@@ -209,6 +222,7 @@ async function handleMessage(msg: ToBackground, sender: chrome.runtime.MessageSe
       return { ok: true };
     }
     case 'bg/meta-put':
+      if (!ownsVideo(sender, msg.meta.videoId)) return { ok: false };
       await putSessionMeta(msg.meta);
       if (await db.get('videos', msg.meta.videoId)) await touchVideo(msg.meta);
       return { ok: true };
@@ -232,6 +246,7 @@ async function handleMessage(msg: ToBackground, sender: chrome.runtime.MessageSe
     case 'bg/capture-tab':
       return captureTab(sender, msg.rect, msg.viewportWidth);
     case 'bg/frame-put': {
+      if (!ownsVideo(sender, msg.videoId)) return { ok: false, id: null };
       if (!(await db.get('videos', msg.videoId))) {
         const meta = await sessionMeta(msg.videoId);
         if (!meta) return { ok: false, id: null };
@@ -310,6 +325,9 @@ async function captureTab(sender: chrome.runtime.MessageSender, rect: { x: numbe
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== TUTOR_PORT || !isTrustedSender(port.sender, chrome.runtime.id)) return;
+  // The fullscreen overlay inside YouTube's page only ever asks questions; the other request kinds
+  // (lesson maps, practice sets, grading) are for the extension's own pages.
+  const fromPage = !port.sender?.url?.startsWith(`chrome-extension://${chrome.runtime.id}/`);
   const inflight = new Map<string, AbortController>();
   let open = true;
   const post = (e: PortEvent) => {
@@ -330,6 +348,9 @@ chrome.runtime.onConnect.addListener((port) => {
     if (msg.type === 'cancel') {
       inflight.get(msg.reqId)?.abort();
       return;
+    }
+    if (fromPage && msg.type !== 'ask') {
+      return post({ type: 'error', reqId: msg.reqId, error: { code: 'unknown', message: 'This request is only available from the side panel.', retryable: false } });
     }
     const ac = new AbortController();
     inflight.set(msg.reqId, ac);
@@ -353,6 +374,26 @@ interface Ctx {
   library: VideoRecord[];
 }
 
+/** Other videos, reduced to what connections and playlist carry-over read (names, concepts, learner
+ * state), cached briefly so each request does not deserialise every stored lesson map and result. */
+let libraryCache: { at: number; videos: VideoRecord[] } | null = null;
+async function slimLibrary(): Promise<VideoRecord[]> {
+  if (libraryCache && Date.now() - libraryCache.at < 60_000) return libraryCache.videos;
+  const videos = (await db.getAll('videos')).map((raw) => {
+    const v = db.completeVideo(raw);
+    return {
+      ...db.emptyVideo(v.videoId, v.createdAt),
+      title: v.title,
+      updatedAt: v.updatedAt,
+      playlist: v.playlist,
+      learner: v.learner,
+      map: v.map ? { ...v.map, sections: [], checkpoints: [], notation: [], preQuestions: [], prerequisiteChecks: [] } : null,
+    };
+  });
+  libraryCache = { at: Date.now(), videos };
+  return videos;
+}
+
 async function loadCtx(videoId: string): Promise<Ctx> {
   const apiKey = await getApiKey();
   if (!apiKey) throw new TutorApiError({ code: 'no-key', message: 'Add your Anthropic API key in Settings to ask the tutor.', retryable: false });
@@ -360,7 +401,7 @@ async function loadCtx(videoId: string): Promise<Ctx> {
   let video = meta ? await touchVideo(meta) : await db.getVideo(videoId);
   if (!video || (!meta && !video.title)) throw new TutorApiError({ code: 'unknown', message: 'The video data has not loaded yet. Wait a second, or reload the YouTube tab.', retryable: true });
   video = video!;
-  const [settings, profile, transcript, library] = await Promise.all([getSettings(), getProfile(), db.get('transcripts', videoId), db.getAll('videos')]);
+  const [settings, profile, transcript, library] = await Promise.all([getSettings(), getProfile(), db.get('transcripts', videoId), slimLibrary()]);
   return {
     apiKey,
     settings,
@@ -368,7 +409,7 @@ async function loadCtx(videoId: string): Promise<Ctx> {
     video,
     meta: { videoId, title: video.title, channel: video.channel, lengthSeconds: video.lengthSeconds, chapters: video.chapters },
     transcript: transcript ?? null,
-    library: library.map(db.completeVideo),
+    library,
   };
 }
 
@@ -523,7 +564,8 @@ async function run(msg: Exclude<PortRequest, { type: 'ping' } | { type: 'cancel'
         return { ...c, ok: g ? !!g.ok : false, gap: g?.gap ?? '' };
       });
       await db.updateVideo(videoId, () => ({ prereqChecks: checks }));
-      for (const c of checks.filter((x) => !x.ok)) {
+      // A skipped question is not a mistake; only answers that were given and fell short are logged.
+      for (const c of checks.filter((x) => !x.ok && x.response?.trim())) {
         await records.addMistake({ videoId, at: null, source: 'prereq', question: c.question, answer: c.response ?? '', misconception: c.gap ?? '', correction: c.answer, confidence: null, concepts: [c.prerequisite] }, ctx.video.title);
       }
       records.notifyChanged(videoId, ['video']);
@@ -597,10 +639,17 @@ async function buildMap(ctx: Ctx, call: Call) {
   if (!map.sections.length) throw new TutorApiError({ code: 'unknown', message: 'The lesson map came back empty. Try again.', retryable: true });
   // Playlist awareness (§13.5): carry the learner model forward from earlier videos in the course.
   const earlier = ctx.video.playlist ? earlierInPlaylist(ctx.library, ctx.video.playlist.id, ctx.video.playlist.index) : [];
+  libraryCache = null;
   ctx.video = await db.updateVideo(ctx.meta.videoId, (cur) => ({
     map,
     preQuestions: map.preQuestions ?? [],
-    prereqChecks: (map.prerequisiteChecks ?? []).map((c) => ({ ...c })),
+    // Preparing the lesson again must not throw away work: keep answers to questions that survive,
+    // and re-point stored checkpoint results at the new checkpoint for the same question or moment.
+    prereqChecks: (map.prerequisiteChecks ?? []).map((c) => cur.prereqChecks.find((o) => o.question === c.question) ?? { ...c }),
+    checkpointResults: cur.checkpointResults.map((r) => {
+      const now = map.checkpoints.find((c) => c.question === r.question) ?? map.checkpoints.find((c) => Math.abs(c.at - r.at) <= 5);
+      return now ? { ...r, checkpointId: now.id } : r;
+    }),
     learner: earlier.length ? carryOver(earlier, map, cur.learner) : cur.learner,
   }));
   records.notifyChanged(ctx.meta.videoId, ['video']);
@@ -640,6 +689,7 @@ async function ask(ctx: Ctx, msg: AskRequest, call: Call, done: (res: DoneResult
     chapterTitle: currentChapter(ctx.meta.chapters, msg.t)?.title ?? null,
     section: si >= 0 && map ? map.sections[si] : null,
     localCaptions: local,
+    captionsWithheld: withhold,
     frame: msg.frame,
     frameNote: msg.frameNote,
     crop: msg.crop,

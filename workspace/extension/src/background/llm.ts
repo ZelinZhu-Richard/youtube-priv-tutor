@@ -4,7 +4,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { ErrorCode, TutorError, UsageReport } from '../shared/messages';
 import { SYSTEM_PROMPT } from '../shared/prompt';
-import { estimateCost, type Effort } from '../shared/settings';
+import { estimateCost, isKnownModel, type Effort } from '../shared/settings';
 
 export interface StreamParams {
   apiKey: string;
@@ -75,7 +75,10 @@ export async function streamClaude(p: StreamParams): Promise<StreamResult> {
     cacheRead: u.cache_read_input_tokens ?? 0,
     cacheWrite: u.cache_creation_input_tokens ?? 0,
   };
-  return { text, stopReason: final.stop_reason, usage: { ...usage, costUsd: estimateCost(final.model, usage) }, servedBy: final.model };
+  // The API may answer with a dated snapshot id, or a fallback model; price by the model that
+  // served the request when it is in the table, otherwise by the one that was asked for.
+  const priced = isKnownModel(final.model) ? final.model : p.model;
+  return { text, stopReason: final.stop_reason, usage: { ...usage, costUsd: estimateCost(priced, usage) }, servedBy: final.model };
 }
 
 export function toTutorError(e: unknown): TutorError {
