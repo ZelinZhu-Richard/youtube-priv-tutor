@@ -65,6 +65,9 @@ export function useApp() {
   const baseRate = useRef<number | null>(null);
 
   const videoId = vs?.videoId ?? null;
+  /** The video on screen now; lets late async work for a previous video be dropped. */
+  const currentVideo = useRef(videoId);
+  currentVideo.current = videoId;
   const meta = vs?.meta ?? null;
   const video = data.video;
   const map = video?.map ?? null;
@@ -200,6 +203,8 @@ export function useApp() {
       want('mistakes') || want('cards') ? db.byVideo('mistakes', vid) : undefined,
       want('problems') ? db.byVideo('problems', vid) : undefined,
     ]);
+    // A request started for a previous video can finish after navigation; never install its data.
+    if (currentVideo.current !== vid) return;
     setData((d) => ({
       video: v === undefined ? d.video : v,
       history: history ? history.sort((a, b) => a.createdAt - b.createdAt) : d.history,

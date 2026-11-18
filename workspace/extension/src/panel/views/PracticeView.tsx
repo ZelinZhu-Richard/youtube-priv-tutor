@@ -1,7 +1,7 @@
 // Practice (§13.3): problem sets per concept with worked-example fading, the hint ladder, a code
 // editor that runs tests in the sandbox, a confidence rating before grading, and attempt history.
 // Shared by the side panel and the library page.
-import { useMemo, useState } from 'preact/hooks';
+import { useMemo, useRef, useState } from 'preact/hooks';
 import type { DoneResult, PortRequest } from '../../shared/messages';
 import { HINT_LADDER, nextHint, revealedHints, summarizeRun, visibleSteps } from '../../shared/practice';
 import { uid } from '../../shared/rpc';
@@ -88,6 +88,9 @@ function ProblemCard({ problem, host }: { problem: PracticeProblem; host: Practi
   const [answer, setAnswer] = useState('');
   const [code, setCode] = useState(problem.code?.starter ?? '');
   const [run, setRun] = useState<RunResult | null>(null);
+  /** Latest editor text, so a test result is only kept for the exact source it ran. */
+  const latest = useRef(code);
+  latest.current = code;
   const [running, setRunning] = useState(false);
   const [confidence, setConfidence] = useState<Confidence | null>(null);
   const job = host.jobs[`problem:${problem.id}`];
@@ -99,7 +102,8 @@ function ProblemCard({ problem, host }: { problem: PracticeProblem; host: Practi
   const doRun = async () => {
     if (!problem.code) return;
     setRunning(true);
-    setRun(await runCode(problem.code.language, code, problem.code.tests));
+    const res = await runCode(problem.code.language, code, problem.code.tests);
+    if (latest.current === code) setRun(res);
     setRunning(false);
   };
   const grade = async () => {
@@ -150,7 +154,10 @@ function ProblemCard({ problem, host }: { problem: PracticeProblem; host: Practi
 
       {problem.code ? (
         <>
-          <textarea class="codebox" spellcheck={false} value={code} onInput={(e) => setCode((e.target as HTMLTextAreaElement).value)} aria-label="Your code" />
+          <textarea class="codebox" spellcheck={false} value={code} onInput={(e) => {
+            setCode((e.target as HTMLTextAreaElement).value);
+            setRun(null); // results belong to the code that ran, not the edited code
+          }} aria-label="Your code" />
           <div class="row">
             <button type="button" class="btn small" onClick={doRun} disabled={running}>
               {running ? 'Running…' : 'Run tests'}

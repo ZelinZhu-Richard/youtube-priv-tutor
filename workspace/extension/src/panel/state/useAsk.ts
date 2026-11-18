@@ -19,7 +19,8 @@ export interface Pending {
   error: TutorError | null;
 }
 
-const SCREEN_KINDS: AskKind[] = ['explain-screen', 'extract', 'walkthrough', 'lost'];
+/** Kinds that are about the screen and cannot be answered without the frame. */
+const SCREEN_KINDS: AskKind[] = ['explain-screen', 'extract'];
 
 export function useAsk(app: App) {
   const [pending, setPending] = useState<Pending | null>(null);
@@ -91,6 +92,12 @@ export function useAsk(app: App) {
       return;
     }
     if (busy) return;
+    // The frame chip is the learner's choice of what gets sent; never override it silently.
+    if (!includeFrame && SCREEN_KINDS.includes(kind)) {
+      app.setView('ask');
+      app.setNotice('This needs the frame, and you chose not to send it. Turn the frame back on to use it.');
+      return;
+    }
     app.setView('ask');
     const st = await app.cs({ type: 'cs/get-state' }).catch(() => null);
     const p = st?.player ?? app.player;
@@ -99,7 +106,7 @@ export function useAsk(app: App) {
     let f: FrameOk | null = null;
     let frameNote: string | null = null;
     const textOnly = kind === 'depth' || kind === 'goal' || kind === 'recap' || kind === 'primer';
-    if (!textOnly && (includeFrame || SCREEN_KINDS.includes(kind))) {
+    if (!textOnly && includeFrame) {
       if (frame && Math.abs(frame.t - now) < 1.5) f = frame;
       else {
         const r = await capture();
