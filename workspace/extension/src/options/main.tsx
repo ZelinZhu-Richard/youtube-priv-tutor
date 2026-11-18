@@ -305,7 +305,7 @@ function Options() {
           onClick={async () => {
             if (!confirm('Delete all questions, answers, lesson maps, frames, bookmarks, practice, review cards and progress for every video? Your API key, profile and settings are kept. This cannot be undone.')) return;
             await db.clearAllData();
-            notifyChanged(null, ['video', 'cards']);
+            notifyChanged(null, ['video', 'history', 'cards', 'bookmarks', 'mistakes', 'problems', 'frames']);
             await refresh();
             flash('All learning data cleared');
           }}

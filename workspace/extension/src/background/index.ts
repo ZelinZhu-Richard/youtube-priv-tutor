@@ -558,8 +558,37 @@ async function run(msg: Exclude<PortRequest, { type: 'ping' } | { type: 'cancel'
   }
 }
 
-/** One call over the full transcript (§12.1). Reuses the Q&A cache prefix for videos in full mode. */
+const NO_USAGE = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, costUsd: 0 };
+/** Lesson maps being generated, by video, so a second request joins the first instead of paying again. */
+const mapJobs = new Map<string, ReturnType<typeof buildMap>>();
+
+/**
+ * The lesson map for this video, generated at most once at a time: the panel's automatic "map"
+ * request and a question on a long video can both want it. A request that joins another's call
+ * reports no usage of its own.
+ */
 async function generateMap(ctx: Ctx, call: Call) {
+  const id = ctx.meta.videoId;
+  const running = mapJobs.get(id);
+  if (running) {
+    const joined = await running.catch(() => null); // the other request was cancelled or failed
+    const video = joined ? await db.getVideo(id) : null;
+    if (joined && video?.map) {
+      ctx.video = video;
+      return { map: video.map, r: { ...joined.r, usage: NO_USAGE } };
+    }
+  }
+  const job = buildMap(ctx, call);
+  mapJobs.set(id, job);
+  try {
+    return await job;
+  } finally {
+    if (mapJobs.get(id) === job) mapJobs.delete(id);
+  }
+}
+
+/** One call over the full transcript (§12.1). Reuses the Q&A cache prefix for videos in full mode. */
+async function buildMap(ctx: Ctx, call: Call) {
   if (!ctx.transcript?.cues.length) {
     throw new TutorApiError({ code: 'no-transcript', message: 'The lesson map needs captions, and this video has none loaded.', retryable: false });
   }
