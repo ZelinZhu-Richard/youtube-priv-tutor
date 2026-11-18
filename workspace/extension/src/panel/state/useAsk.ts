@@ -46,6 +46,9 @@ export function useAsk(app: App) {
 
   useEffect(() => {
     activeReq.current = null;
+    cancelAnimationFrame(raf.current);
+    raf.current = 0;
+    deltaBuf.current = '';
     setPending(null);
     setAlts({});
     setFrame(null);
@@ -183,12 +186,17 @@ export function useAsk(app: App) {
 
   function send(req: AskRequest) {
     setPending({ req, text: '', thinking: '', error: null });
+    // The text buffer and animation frame are shared, so drop anything queued by an earlier request.
+    cancelAnimationFrame(raf.current);
+    raf.current = 0;
     deltaBuf.current = '';
     const reqId = req.reqId;
     activeReq.current = reqId;
     app.port.request(req, {
-      onThinking: (d) => setPending((pp) => (pp && pp.req.reqId === reqId ? { ...pp, thinking: pp.thinking + d } : pp)),
+      onThinking: (d) => activeReq.current === reqId && setPending((pp) => (pp && pp.req.reqId === reqId ? { ...pp, thinking: pp.thinking + d } : pp)),
       onDelta: (d) => {
+        // An earlier request may still be streaming; its text must not reach this one's buffer.
+        if (activeReq.current !== reqId) return;
         deltaBuf.current += d;
         if (raf.current) return;
         raf.current = requestAnimationFrame(() => {
