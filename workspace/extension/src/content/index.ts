@@ -322,7 +322,8 @@ function main() {
 
   (window as Win).__ytTutorApi = {
     state: () => state(),
-    capture: () => captureFrame(findVideo()),
+    // Same rule as the panel's capture: an ad's frame is never used as lecture context.
+    capture: async () => (adShowing() ? { ok: false as const, reason: 'error' as const, message: 'An ad is playing. Try again when the video is back.' } : captureFrame(findVideo())),
     ensureCaptions: () => ensureCaptions(false),
     findVideo,
     pause: () => findVideo()?.pause(),

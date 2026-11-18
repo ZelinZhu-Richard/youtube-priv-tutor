@@ -63,7 +63,8 @@ export function WatchView({ app, ask }: { app: App; ask: Ask }) {
           </div>
         </div>
       )}
-      <PreWatch app={app} ask={ask} library={library} />
+      {/* Keyed by video so answers typed for one video never carry over to the next. */}
+      <PreWatch key={app.videoId ?? 'none'} app={app} ask={ask} library={library} />
       <CheckpointCard app={app} />
 
       {app.confusion && (
