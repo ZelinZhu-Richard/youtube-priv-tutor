@@ -92,6 +92,9 @@ function ProblemCard({ problem, host }: { problem: PracticeProblem; host: Practi
   const latest = useRef(code);
   latest.current = code;
   const [running, setRunning] = useState(false);
+  /** Check was clicked and is running tests or waiting to be graded; blocks a second submission. */
+  const [checking, setChecking] = useState(false);
+  const checkingRef = useRef(false);
   const [confidence, setConfidence] = useState<Confidence | null>(null);
   const job = host.jobs[`problem:${problem.id}`];
   const grading = !!job && !job.result && !job.error;
@@ -107,6 +110,19 @@ function ProblemCard({ problem, host }: { problem: PracticeProblem; host: Practi
     setRunning(false);
   };
   const grade = async () => {
+    // Reserve synchronously: the sandbox run below is awaited, and a second click during it would
+    // otherwise send a second paid grading request.
+    if (checkingRef.current || grading) return;
+    checkingRef.current = true;
+    setChecking(true);
+    try {
+      await submit();
+    } finally {
+      checkingRef.current = false;
+      setChecking(false);
+    }
+  };
+  const submit = async () => {
     let r = run;
     if (problem.code && !r) {
       setRunning(true);
@@ -174,7 +190,7 @@ function ProblemCard({ problem, host }: { problem: PracticeProblem; host: Practi
       )}
       <ConfidencePicker value={confidence} onChange={setConfidence} />
       <div class="row" style={{ marginTop: 8 }}>
-        <button type="button" class="btn primary small" disabled={!host.hasKey || grading || !confidence || (!answer.trim() && !(problem.code && code.trim()))} onClick={grade} title={!confidence ? 'Rate your confidence first' : ''}>
+        <button type="button" class="btn primary small" disabled={!host.hasKey || grading || checking || running || !confidence || (!answer.trim() && !(problem.code && code.trim()))} onClick={grade} title={!confidence ? 'Rate your confidence first' : ''}>
           Check
         </button>
         <button type="button" class="btn ghost small" disabled={hints >= HINT_LADDER.length} onClick={() => setHints(nextHint(hints))}>

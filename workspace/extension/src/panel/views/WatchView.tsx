@@ -402,11 +402,20 @@ function CheckpointCard({ app }: { app: App }) {
   );
 }
 
+/** The video and section the teach-back job belongs to, kept outside the card so reopening the
+ * same section (which remounts the card) keeps feedback that was paid for. */
+let teachKey: string | null = null;
+
 function TeachBack({ app, sectionIndex, onClose }: { app: App; sectionIndex: number; onClose: () => void }) {
   const [draft, setDraft] = useState('');
   const job = app.jobs.teach;
   const result = job?.result?.kind === 'teachback' ? job.result.result : null;
-  useEffect(() => app.clearJob('teach'), [sectionIndex]);
+  useEffect(() => {
+    const key = `${app.videoId}:${sectionIndex}`;
+    if (key === teachKey) return;
+    teachKey = key;
+    app.clearJob('teach');
+  }, [app.videoId, sectionIndex]);
   return (
     <div class="card">
       <div class="eyebrow">Explain it back</div>
@@ -433,9 +442,14 @@ function TeachBack({ app, sectionIndex, onClose }: { app: App; sectionIndex: num
       )}
       {job?.error && <Banner kind="error">{job.error.message}</Banner>}
       {result && (
-        <button type="button" class="btn small" style={{ marginTop: 8 }} onClick={onClose}>
-          Close
-        </button>
+        <div class="row" style={{ marginTop: 8 }}>
+          <button type="button" class="btn small" onClick={onClose}>
+            Close
+          </button>
+          <button type="button" class="btn ghost small" onClick={() => { setDraft(''); app.clearJob('teach'); }}>
+            Try again
+          </button>
+        </div>
       )}
     </div>
   );
