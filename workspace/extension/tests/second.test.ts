@@ -15,6 +15,7 @@ import {
   findPriorTeaching,
   layoutGraph,
   migrateV1,
+  mergeMigrated,
   searchLibrary,
   studyOrder,
   tokenize,
@@ -238,6 +239,14 @@ describe('migration from the first build', () => {
   });
   it('is a no-op on empty storage', () => {
     expect(migrateV1({}, {}, NOW)).toEqual({ videos: [], history: [], transcripts: [], migratedKeys: [] });
+  });
+  it('keeps a migrated record whole when nothing is stored yet, and lets a saved record win', () => {
+    const migrated = r.videos[0];
+    expect(mergeMigrated(null, migrated)).toBe(migrated);
+    const saved = { ...migrated, known: [9], map: null, updatedAt: migrated.updatedAt + 1 };
+    const merged = mergeMigrated(saved, migrated);
+    expect(merged.known).toEqual([9]);
+    expect(merged.map).toBe(migrated.map);
   });
 });
 

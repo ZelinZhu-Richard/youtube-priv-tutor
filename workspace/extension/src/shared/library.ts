@@ -321,3 +321,13 @@ export function layoutGraph(nodes: GraphNode[]): PlacedNode[] {
       return { key: n.key, level: l, row };
     });
 }
+
+/**
+ * What to store for a migrated first-build video. With nothing stored yet, the migrated record is
+ * kept whole. If a newer build already saved this video, its fields win and the migrated record
+ * only fills in a missing lesson map.
+ */
+export function mergeMigrated(existing: VideoRecord | null, migrated: VideoRecord): VideoRecord {
+  if (!existing) return migrated;
+  return { ...migrated, ...existing, map: existing.map ?? migrated.map };
+}
