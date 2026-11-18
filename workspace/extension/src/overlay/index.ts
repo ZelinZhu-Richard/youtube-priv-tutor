@@ -82,7 +82,10 @@ function build() {
   host.addEventListener('click', (e) => e.stopPropagation());
   host.addEventListener('dblclick', (e) => e.stopPropagation());
 
+  /** Set when this overlay is closed, so a question still being prepared is never sent from a dead UI. */
+  let closed = false;
   const close = () => {
+    closed = true;
     if (reqId) port?.postMessage({ type: 'cancel', reqId });
     host.remove();
   };
@@ -157,6 +160,7 @@ function build() {
     const f = await api!.capture();
     // The learner may have moved to another video while captions loaded; the frame just captured
     // would then be the new video's, so do not send or store it under the old one.
+    if (closed) return;
     if (api!.state().videoId !== st.videoId) {
       status.textContent = 'The video changed. Ask again.';
       return;

@@ -222,6 +222,8 @@ export function useApp() {
     setTranscript(null);
     setCaptions({ state: 'idle' });
     setConfusion(null);
+    // An unanswered checkpoint belongs to the video it fired on.
+    setCheckpointHit(null);
     setSpeed(null);
     baseRate.current = null;
     seeks.current = [];
