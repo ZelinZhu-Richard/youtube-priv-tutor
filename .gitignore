@@ -1,0 +1,7 @@
+plan.md
+
+node_modules/
+dist/
+workspace/scratch/
+*.log
+.DS_Store
