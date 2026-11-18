@@ -38,6 +38,7 @@ import {
 } from '../shared/prompt';
 import * as records from '../shared/records';
 import { broadcast, uid } from '../shared/rpc';
+import { isTrustedSender, YOUTUBE_URL } from '../shared/trust';
 import { KEYS, type Settings } from '../shared/settings';
 import { addUsage, getProfile, getSettings } from '../shared/store';
 import { summarizeRun } from '../shared/practice';
@@ -53,7 +54,6 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => 
 // page's process and need none of it, so only extension pages and this worker may read it.
 chrome.storage.local.setAccessLevel?.({ accessLevel: 'TRUSTED_CONTEXTS' }).catch(() => undefined);
 
-const YOUTUBE_URL = /^https:\/\/www\.youtube\.com\//;
 /** True when the tab is a YouTube page. Tabs on other sites are never injected into or captured. */
 async function isYouTubeTab(tabId: number): Promise<chrome.tabs.Tab | null> {
   const tab = await chrome.tabs.get(tabId).catch(() => null);
@@ -155,10 +155,7 @@ chrome.runtime.onMessage.addListener((msg: ToBackground | { type: 'evt/data'; ki
   }
   if (!msg || typeof msg.type !== 'string' || !msg.type.startsWith('bg/')) return false;
   // Only this extension's own pages and its content scripts on YouTube may ask for anything.
-  // Extension pages opened in a tab (Settings, Library) have sender.tab set too, so judge by the
-  // sending frame's own URL, not by whether a tab is attached.
-  const from = sender.url ?? sender.tab?.url ?? '';
-  if (sender.id !== chrome.runtime.id || !(from.startsWith(`chrome-extension://${chrome.runtime.id}/`) || YOUTUBE_URL.test(from))) return false;
+  if (!isTrustedSender(sender, chrome.runtime.id)) return false;
   handleMessage(msg as ToBackground, sender)
     .then(sendResponse)
     .catch((e) => sendResponse({ ok: false, message: String(e) }));
@@ -274,16 +271,9 @@ async function captureTab(sender: chrome.runtime.MessageSender, rect: { x: numbe
 
 // ---------- the tutor port (side panel, library page, fullscreen overlay) ----------
 
-function trustedPort(port: chrome.runtime.Port): boolean {
-  const s = port.sender;
-  if (!s) return false;
-  if (s.id !== chrome.runtime.id) return false;
-  if (s.url?.startsWith(`chrome-extension://${chrome.runtime.id}/`)) return true;
-  return !!s.tab?.url && /^https:\/\/www\.youtube\.com\//.test(s.tab.url);
-}
 
 chrome.runtime.onConnect.addListener((port) => {
-  if (port.name !== TUTOR_PORT || !trustedPort(port)) return;
+  if (port.name !== TUTOR_PORT || !isTrustedSender(port.sender, chrome.runtime.id)) return;
   const inflight = new Map<string, AbortController>();
   let open = true;
   const post = (e: PortEvent) => {

@@ -21,10 +21,18 @@ function Options() {
   const [shortcuts, setShortcuts] = useState<chrome.commands.Command[]>([]);
   const [profile, setProfile] = useState<LearnerProfile>(store.EMPTY_PROFILE);
   const [mic, setMic] = useState<string | null>(null);
+  /** The service worker did not answer (not running, or still the old build after a reload). */
+  const [workerDown, setWorkerDown] = useState(false);
+
+  const loadKeyInfo = async () => {
+    const r = await sendToBackground({ type: 'bg/has-key' }).catch(() => undefined);
+    setWorkerDown(!r);
+    setKeyInfo(r ?? { hasKey: false, hint: '' });
+  };
 
   const refresh = async () => {
     setSettings(await store.getSettings());
-    setKeyInfo(await sendToBackground({ type: 'bg/has-key' }));
+    await loadKeyInfo();
     setUsage(await store.getUsage());
     setProfile(await store.getProfile());
     await ensureMigrated().catch(() => undefined);
@@ -52,7 +60,7 @@ function Options() {
     // Written here, read only by the service worker.
     await chrome.storage.local.set({ [KEYS.apiKey]: k });
     setKey('');
-    setKeyInfo(await sendToBackground({ type: 'bg/has-key' }));
+    await loadKeyInfo();
     flash('API key saved');
   };
   const removeKey = async () => {
@@ -65,6 +73,14 @@ function Options() {
     <main class="opt">
       <h1>YouTube Tutor</h1>
       <p class="muted">A side-panel tutor for YouTube lectures. Settings are stored in this browser only.</p>
+      {workerDown && (
+        <section class="card" role="alert">
+          <strong>The extension's background worker did not answer.</strong>
+          <p class="small">
+            Open chrome://extensions, click the reload arrow on YouTube Tutor, then reload this page. Until then the key status below may be wrong and the tutor will not answer.
+          </p>
+        </section>
+      )}
 
       <section class="card">
         <h2>Anthropic API key</h2>

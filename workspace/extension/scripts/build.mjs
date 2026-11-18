@@ -5,12 +5,18 @@
 //   4. the main-world page script as a single classic (IIFE) script
 // Content scripts cannot be ES modules, so they are built separately and self-contained.
 import { build } from 'vite';
-import { cpSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const src = resolve(root, 'src');
-const outDir = resolve(root, 'dist');
+// Build into a staging folder and swap it in at the end. Chrome loads the unpacked extension
+// straight from dist/, so emptying dist/ during a build left it without background.js for several
+// seconds; a reload or service-worker restart in that window failed with "An unknown error
+// occurred when fetching the script" and left the old worker (or none) running.
+const distDir = resolve(root, 'dist');
+const prevDir = resolve(root, '.dist-prev');
+const outDir = resolve(root, '.dist-next');
 
 const common = {
   configFile: false,
@@ -87,4 +93,9 @@ const manifest = JSON.parse(readFileSync(resolve(root, 'manifest.json'), 'utf8')
 manifest.version = pkg.version;
 writeFileSync(resolve(outDir, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 
-console.log('Built extension into', outDir);
+rmSync(prevDir, { recursive: true, force: true });
+if (existsSync(distDir)) renameSync(distDir, prevDir);
+renameSync(outDir, distDir);
+rmSync(prevDir, { recursive: true, force: true });
+
+console.log('Built extension into', distDir);

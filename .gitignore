@@ -2,6 +2,8 @@ plan.md
 
 node_modules/
 dist/
+.dist-next/
+.dist-prev/
 workspace/scratch/
 *.log
 .DS_Store
