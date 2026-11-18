@@ -105,10 +105,13 @@ export function useAsk(app: App) {
     const dur = p?.duration || meta.lengthSeconds;
     let f: FrameOk | null = null;
     let frameNote: string | null = null;
+    /** A selected region belongs to the frame it was drawn on; a fresh capture invalidates it. */
+    let cropValid = true;
     const textOnly = kind === 'depth' || kind === 'goal' || kind === 'recap' || kind === 'primer';
     if (!textOnly && includeFrame) {
       if (frame && Math.abs(frame.t - now) < 1.5) f = frame;
       else {
+        cropValid = false;
         const r = await capture();
         f = r.frame;
         if (!f) frameNote = r.error ?? 'the frame could not be captured';
@@ -116,7 +119,7 @@ export function useAsk(app: App) {
       if (f?.lowQuality) frameNote = `The player is at ${f.qualityLabel}; small on-screen text may be unreadable.`;
     } else if (!textOnly) frameNote = 'the learner removed it';
     const fp = f ? splitDataUrl(f.dataUrl) : null;
-    const cp = crop && f && !textOnly ? splitDataUrl(crop.dataUrl) : null;
+    const cp = crop && cropValid && f && !textOnly ? splitDataUrl(crop.dataUrl) : null;
     const wantCaptions = kind === 'lost' || (includeCaptions && !textOnly);
     const req: AskRequest = {
       type: 'ask',

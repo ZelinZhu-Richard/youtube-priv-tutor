@@ -340,6 +340,9 @@ function main() {
     if (!track) return { state: 'none', reason: 'This video has no captions. The tutor can still answer from the screen.' };
     const cacheLang = `${track.languageCode}${track.isAuto ? ':asr' : ''}`;
     const finish = async (cues: Cue[], source: Transcript['source']): Promise<CaptionStatus> => {
+      // The learner may have moved to another video while captions were loading; what was read
+      // could then belong to that video, so never store it under this one.
+      if (gen !== generation) return captions;
       const transcript: Transcript = {
         videoId: m.videoId,
         lang: cacheLang,
@@ -397,7 +400,7 @@ function main() {
     // 4. Scrape the "Show transcript" panel.
     if (gen !== generation) return captions;
     setCaptions({ state: 'loading', step: 'Reading the transcript panel' });
-    cues = normalizeCues(await scrapeTranscriptPanel(m.lengthSeconds));
+    cues = normalizeCues(await scrapeTranscriptPanel(m.lengthSeconds, () => gen !== generation));
     if (cues.length) return finish(cues, 'panel');
 
     return { state: 'none', reason: 'YouTube lists captions for this video, but none could be loaded. Try again, or turn CC on in the player and retry.' };
@@ -409,7 +412,7 @@ function main() {
     return !!el;
   }
 
-  async function scrapeTranscriptPanel(lengthSeconds: number): Promise<Cue[]> {
+  async function scrapeTranscriptPanel(lengthSeconds: number, stale: () => boolean): Promise<Cue[]> {
     let rows = readTranscriptSegments(document);
     let opened = false;
     let expanded = false;
@@ -424,16 +427,18 @@ function main() {
         if (expanded) clickFirst(YT.descriptionCollapseSelectors);
         return [];
       }
-      for (let i = 0; i < 25 && !rows.length; i++) {
+      for (let i = 0; i < 25 && !rows.length && !stale(); i++) {
         await sleep(300);
         rows = readTranscriptSegments(document);
       }
+      if (stale()) return []; // navigated away: these rows would be the next video's
       if (rows.length) {
         // Let the list finish rendering.
         await sleep(400);
         rows = readTranscriptSegments(document);
       }
     }
+    if (stale()) return [];
     const cues = segmentsToCues(rows, lengthSeconds);
     if (opened) {
       const panel = transcriptPanel(document);
