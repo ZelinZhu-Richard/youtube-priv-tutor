@@ -127,7 +127,8 @@ function ProblemCard({ problem, host }: { problem: PracticeProblem; host: Practi
     if (problem.code && !r) {
       setRunning(true);
       r = await runCode(problem.code.language, code, problem.code.tests);
-      setRun(r);
+      // Keep the result only if the editor still holds the code it ran; this submission uses `r` either way.
+      if (latest.current === code) setRun(r);
       setRunning(false);
     }
     host.runJob(`problem:${problem.id}`, { type: 'grade-problem', reqId: uid('g'), problemId: problem.id, answer, code: problem.code ? code : null, run: r, hintsUsed: hints, confidence });

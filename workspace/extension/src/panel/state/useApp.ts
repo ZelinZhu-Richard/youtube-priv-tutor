@@ -91,9 +91,12 @@ export function useApp() {
   const seek = useCallback((s: number) => void cs({ type: 'cs/seek', t: s }).catch(() => undefined), [cs]);
 
   // ---------- jobs (streaming requests other than questions) ----------
+  /** The request that currently owns each job key. */
+  const jobOwner = useRef<Record<string, string>>({});
   const runJob = useCallback(
     (key: string, req: Exclude<PortRequest, { type: 'ping' } | { type: 'cancel' } | { type: 'ask' }>, onDone?: (r: DoneResult) => void) => {
       const reqId = req.reqId;
+      jobOwner.current[key] = reqId;
       const upd = (f: (j: Job) => Job) => setJobs((all) => (all[key]?.reqId === reqId ? { ...all, [key]: f(all[key]) } : all));
       setJobs((all) => ({ ...all, [key]: { reqId, text: '', thinking: '' } }));
       port.request(req, {
@@ -101,15 +104,20 @@ export function useApp() {
         onDelta: (d) => upd((j) => ({ ...j, text: j.text + d })),
         onDone: (res, info) => {
           upd((j) => ({ ...j, result: res }));
-          if (info.truncated) setNotice('The answer hit the length limit and was cut off.');
-          onDone?.(res);
+          if (info.truncated && jobOwner.current[key] === reqId) setNotice('The answer hit the length limit and was cut off.');
+          // A request superseded under the same key (or from a previous video) must not run its
+          // completion callback: those callbacks clear or reload by key and would hit the newer job.
+          if (jobOwner.current[key] === reqId) onDone?.(res);
         },
         onError: (error) => upd((j) => ({ ...j, error })),
       });
     },
     [port],
   );
-  const clearJob = (key: string) => setJobs(({ [key]: _, ...rest }) => rest);
+  const clearJob = (key: string) => {
+    delete jobOwner.current[key];
+    setJobs(({ [key]: _, ...rest }) => rest);
+  };
 
   // ---------- settings, key, migration ----------
   const refreshKey = () => sendToBackground({ type: 'bg/has-key' }).then(setKeyInfo).catch(() => setKeyInfo({ hasKey: false, hint: '' }));
@@ -218,6 +226,7 @@ export function useApp() {
   useEffect(() => {
     setData(EMPTY);
     setLoadedVid(null);
+    jobOwner.current = {};
     setJobs({});
     setTranscript(null);
     setCaptions({ state: 'idle' });
