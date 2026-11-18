@@ -11,7 +11,7 @@ import { uid } from '../shared/rpc';
 import { YT } from '../shared/youtube';
 import type { ContentApi } from '../content/index';
 
-type Win = Window & { __ytTutorApi?: ContentApi; __ytTutorOverlay?: { open: (action?: CommandAction) => void } };
+type Win = Window & { __ytTutorPolicy?: { createHTML: (s: string) => unknown } | null; __ytTutorApi?: ContentApi; __ytTutorOverlay?: { open: (action?: CommandAction) => void } };
 const w = window as Win;
 
 const render = createRenderer({ mathOutput: 'mathml' });
@@ -20,11 +20,16 @@ const render = createRenderer({ mathOutput: 'mathml' });
 // site). The strings passed here are our own static markup or the output of the escaping Markdown
 // renderer (raw HTML escaped, http(s) links only, no images, KaTeX with trust: false).
 type TT = { createPolicy: (name: string, rules: { createHTML: (s: string) => string }) => { createHTML: (s: string) => unknown } };
-let policy: { createHTML: (s: string) => unknown } | null = null;
-try {
-  policy = (window as unknown as { trustedTypes?: TT }).trustedTypes?.createPolicy('youtube-tutor-overlay', { createHTML: (s) => s }) ?? null;
-} catch {
-  policy = null;
+// Kept on the window: this script can be injected again after an extension reload, and creating a
+// second policy with the same name can throw.
+let policy: { createHTML: (s: string) => unknown } | null = (window as Win).__ytTutorPolicy ?? null;
+if (!policy) {
+  try {
+    policy = (window as unknown as { trustedTypes?: TT }).trustedTypes?.createPolicy('youtube-tutor-overlay', { createHTML: (s) => s }) ?? null;
+  } catch {
+    policy = null;
+  }
+  (window as Win).__ytTutorPolicy = policy;
 }
 const trusted = (s: string) => (policy ? policy.createHTML(s) : s) as unknown as string;
 

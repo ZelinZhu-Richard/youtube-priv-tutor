@@ -8,7 +8,17 @@ import { sendToBackground, uid } from '../shared/rpc';
 /** The last capture kept at native resolution so a region crop is sharp (§12.3 "point at it"). */
 let last: { id: string; canvas: HTMLCanvasElement } | null = null;
 
+let lastTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** Keeps a capture for region crops, but not indefinitely: a 4K canvas is about 33 MB. */
+function keep(id: string, canvas: HTMLCanvasElement) {
+  last = { id, canvas };
+  clearTimeout(lastTimer);
+  lastTimer = setTimeout(() => (last = null), 5 * 60_000);
+}
+
 export function clearCaptures() {
+  clearTimeout(lastTimer);
   last = null;
 }
 
@@ -65,7 +75,7 @@ export async function captureFrame(video: HTMLVideoElement | null): Promise<Fram
     ctx.drawImage(video, 0, 0, nativeWidth, nativeHeight);
     if (!isBlank(canvas)) {
       const id = uid('f');
-      last = { id, canvas };
+      keep(id, canvas);
       const enc = encode(canvas);
       return { ok: true, captureId: id, ...enc, nativeWidth, nativeHeight, t, via: 'canvas', qualityLabel: quality, lowQuality };
     }
@@ -100,7 +110,7 @@ export async function captureFrame(video: HTMLVideoElement | null): Promise<Fram
     return { ok: false, reason: 'blank', message: 'The frame is blank (protected video, or nothing drawn yet), so no image will be sent.' };
   }
   const id = uid('f');
-  last = { id, canvas };
+  keep(id, canvas);
   const enc = encode(canvas);
   return { ok: true, captureId: id, ...enc, nativeWidth, nativeHeight, t, via: 'tab', qualityLabel: quality, lowQuality };
 }

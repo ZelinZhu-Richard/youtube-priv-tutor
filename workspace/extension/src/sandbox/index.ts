@@ -26,10 +26,12 @@ interface PyAssets {
 const LOCKDOWN = `for (const k of ['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource', 'importScripts', 'indexedDB', 'caches', 'BroadcastChannel']) { try { Object.defineProperty(self, k, { value: undefined, configurable: false }); } catch {} }`;
 
 const JS_WORKER = `${LOCKDOWN}
-self.onmessage = (e) => {
+const AsyncFunction = (async () => {}).constructor;
+self.onmessage = async (e) => {
   const logs = [], results = [];
   try {
-    new Function('__logs', '__results', e.data.src)(logs, results);
+    // Async, so exercises and tests may use await; the run is over when the body settles.
+    await new AsyncFunction('__logs', '__results', e.data.src)(logs, results);
     self.postMessage({ stdout: logs.join('\\n'), error: null, tests: results });
   } catch (err) {
     self.postMessage({ stdout: logs.join('\\n'), error: String((err && err.stack) || err), tests: results });

@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { emptyVideo } from '../src/shared/db';
 import { assembleNotesZip, frameFileName, slug, toMarkdown } from '../src/shared/export';
-import { hashedFrames, NO_HASH, detectBackwardReference, dHash, edgeDensity, hamming, isNearDuplicate, nearestFrame, previousDistinct, pruneFrames, toGray } from '../src/shared/frames';
+import { pruneIds, hashedFrames, NO_HASH, detectBackwardReference, dHash, edgeDensity, hamming, isNearDuplicate, nearestFrame, previousDistinct, pruneFrames, toGray } from '../src/shared/frames';
 import { glossaryEntries, glossaryUpTo, mergeNotation } from '../src/shared/glossary';
 import { applyLearnerEvent, EMPTY_LEARNER } from '../src/shared/learner';
 import {
@@ -374,6 +374,23 @@ describe('practice', () => {
       ['throws', false],
     ]);
     expect(results[1].message).toBe('sum: expected 5, got 4');
+  });
+  it('JS harness: awaits async code and tests, and lets user code reuse harness names', async () => {
+    const src = buildJsHarness('const console = { log() {} };\nasync function twice(x) { return (await Promise.resolve(x)) * 2; }', [
+      { name: 'async', code: 'assertEqual(await twice(4), 8)' },
+      { name: 'async wrong', code: 'assertEqual(await twice(4), 9)' },
+    ]);
+    const AsyncFunction = (async () => {}).constructor as new (...a: string[]) => (...a: unknown[]) => Promise<void>;
+    const results: { name: string; passed: boolean }[] = [];
+    await new AsyncFunction('__logs', '__results', src)([], results);
+    expect(results.map((r) => [r.name, r.passed])).toEqual([
+      ['async', true],
+      ['async wrong', false],
+    ]);
+  });
+  it('prunes the oldest ids with a prefix', () => {
+    expect(pruneIds(['fa3', 'fs9', 'fa1', 'fa2'], 'fa', 2)).toEqual(['fa1']);
+    expect(pruneIds(['fa1'], 'fa', 2)).toEqual([]);
   });
   it('summarises runs for the grader and parses harness JSON', () => {
     const r = parseHarnessResult(JSON.stringify({ stdout: 'out', error: null, tests: [{ name: 't', passed: false, message: 'boom' }] }), 12);

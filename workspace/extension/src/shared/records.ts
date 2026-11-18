@@ -20,6 +20,10 @@ async function upsertCards(cards: ReviewCard[], dueNow: boolean) {
 
 /** Applies a learner event; concepts that become shaky get (or are brought back as) review cards. */
 export async function learn(videoId: string, ev: LearnerEvent): Promise<VideoRecord> {
+  // Most "watched" ticks change nothing; skip the write and the broadcast (and the reloads it
+  // triggers in every open view) when the model would come back unchanged.
+  const before = await db.getVideo(videoId);
+  if (before && applyLearnerEvent(before.learner, ev, before.map) === before.learner) return before;
   let became: string[] = [];
   const v = await db.updateVideo(videoId, (cur) => {
     const next = applyLearnerEvent(cur.learner, ev, cur.map);

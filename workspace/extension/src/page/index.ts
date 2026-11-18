@@ -41,7 +41,8 @@ function install() {
     const key = `${p.videoId}|${p.lang}|${p.kind ?? ''}`;
     captured.delete(key);
     captured.set(key, { url, body, videoId: p.videoId, lang: p.lang, kind: p.kind ?? '' });
-    while (captured.size > 24) captured.delete(captured.keys().next().value as string);
+    // Only the current video's track is read back; keep a few so a quick back/forward still hits.
+    while (captured.size > 4) captured.delete(captured.keys().next().value as string);
     for (const wt of [...waiters]) {
       if (wt.videoId === p.videoId && langMatches(wt.lang, p.lang)) {
         waiters.delete(wt);

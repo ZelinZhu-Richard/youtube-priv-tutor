@@ -54,4 +54,10 @@ describe('renderMarkdown', () => {
     expect(() => renderMarkdown('Partial $\\frac{a}{')).not.toThrow();
     expect(() => renderMarkdown('```python\ndef f(')).not.toThrow();
   });
+  it('ignores placeholder characters that arrive in the input', () => {
+    const html = renderMarkdown('before \uE0007\uE001 and \uE0023\uE003 after $x$');
+    expect(html).toContain('before');
+    expect(html).toContain('after');
+    expect(html).not.toMatch(/[\uE000-\uE003]/);
+  });
 });

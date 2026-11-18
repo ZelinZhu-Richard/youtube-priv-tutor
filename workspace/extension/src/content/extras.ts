@@ -46,6 +46,10 @@ export function frameJpeg(video: HTMLVideoElement, longEdge = 1280, quality = 0.
 
 const BUTTON_ID = 'yt-tutor-ask-button';
 
+export function removeAskButton() {
+  document.getElementById(BUTTON_ID)?.remove();
+}
+
 /** Adds the "Ask" button to the player's right-hand controls (idempotent). */
 export function ensureAskButton(onClick: () => void): boolean {
   if (document.getElementById(BUTTON_ID)) return true;

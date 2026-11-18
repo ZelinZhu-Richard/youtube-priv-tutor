@@ -30,7 +30,7 @@ import {
 import { isNearDuplicate } from '../shared/frames';
 import type { CommandAction } from '../shared/messages';
 import { formatTime } from '../shared/time';
-import { ensureAskButton, frameDensity, frameHash, frameJpeg, showToast } from './extras';
+import { ensureAskButton, frameDensity, frameHash, frameJpeg, removeAskButton, showToast } from './extras';
 import { captureFrame, clearCaptures, cropLast } from './frame';
 
 /** API the on-demand fullscreen overlay (overlay.js, same isolated world) uses. */
@@ -42,11 +42,19 @@ export interface ContentApi {
   pause: () => void;
 }
 
-type Win = Window & { __ytTutorContent?: boolean; __ytTutorApi?: ContentApi; __ytTutorOverlay?: { open: (action?: CommandAction) => void } };
+type Win = Window & { __ytTutorContent?: { alive: () => boolean }; __ytTutorApi?: ContentApi; __ytTutorOverlay?: { open: (action?: CommandAction) => void } };
 
-if (!(window as Win).__ytTutorContent) {
-  (window as Win).__ytTutorContent = true;
-  main();
+// The isolated world outlives an extension reload, so a plain "already ran" flag would make a
+// re-injected script do nothing while the old instance is dead. Run unless a live instance exists.
+{
+  const prev = (window as Win).__ytTutorContent;
+  let prevAlive = false;
+  try {
+    prevAlive = !!prev?.alive();
+  } catch {
+    prevAlive = false;
+  }
+  if (!prevAlive) main();
 }
 
 function main() {
@@ -76,6 +84,11 @@ function main() {
     }
   };
   const send = (msg: Broadcast) => alive() && broadcast(msg);
+  (window as Win).__ytTutorContent = { alive };
+  // Leftovers from a dead instance are wired to its dead handlers; start clean.
+  removeAskButton();
+  document.getElementById('yt-tutor-overlay')?.remove();
+  delete (window as Win).__ytTutorOverlay;
 
   // ---------- page-world bridge ----------
   const pending = new Map<string, (msg: FromPage) => void>();

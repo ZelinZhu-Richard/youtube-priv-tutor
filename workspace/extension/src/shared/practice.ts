@@ -135,8 +135,9 @@ export function calibration(items: { confidence?: Confidence | null; verdict: Ve
 // ---------- sandbox harnesses ----------
 
 /**
- * JavaScript run in the sandbox worker as `new Function('__logs', '__results', src)`. User code is
- * at function top level so tests see its declarations; each test runs in its own try/catch.
+ * JavaScript run in the sandbox worker as an async function body (so code and tests may await).
+ * User code sits in its own block, so it may declare names the harness also uses, and tests in
+ * the same block see its declarations; each test runs in its own try/catch.
  */
 export function buildJsHarness(code: string, tests: { name: string; code: string }[]): string {
   const testBlocks = tests
@@ -148,9 +149,11 @@ export function buildJsHarness(code: string, tests: { name: string; code: string
 const console = { log: (...a) => __logs.push(a.map(__fmt).join(' ')), info: (...a) => __logs.push(a.map(__fmt).join(' ')), warn: (...a) => __logs.push(a.map(__fmt).join(' ')), error: (...a) => __logs.push(a.map(__fmt).join(' ')) };
 function assert(cond, msg) { if (!cond) throw new Error(msg || 'assertion failed'); }
 function assertEqual(actual, expected, msg) { const a = JSON.stringify(actual), b = JSON.stringify(expected); if (a !== b) throw new Error((msg ? msg + ': ' : '') + 'expected ' + b + ', got ' + a); }
+{
 ${code}
 ;
-${testBlocks}`;
+${testBlocks}
+}`;
 }
 
 /** Python run by Pyodide; the last expression is the JSON result. */

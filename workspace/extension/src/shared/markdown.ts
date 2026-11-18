@@ -79,10 +79,11 @@ export function createRenderer(opts: RenderOptions = {}): (md: string) => string
   return (md: string) => {
     const math: MathPiece[] = [];
     const stamps: FoundTimestamp[] = [];
-    const prepared = splitCode(md)
+    // U+E000–U+E003 are this renderer's own placeholder marks; drop any that arrive in the input.
+    const prepared = splitCode(md.replace(/[\uE000-\uE003]/g, ''))
       .map((seg) => (seg.code ? seg.text : protect(seg.text, math, stamps)))
       .join('');
     const html = marked.parse(prepared, { async: false }) as string;
-    return html.replace(/\uE000(\d+)\uE001/g, (_, i: string) => renderMath(math[Number(i)])).replace(/\uE002(\d+)\uE003/g, (_, i: string) => renderStamp(stamps[Number(i)]));
+    return html.replace(/\uE000(\d+)\uE001/g, (_, i: string) => (math[Number(i)] ? renderMath(math[Number(i)]) : '')).replace(/\uE002(\d+)\uE003/g, (_, i: string) => (stamps[Number(i)] ? renderStamp(stamps[Number(i)]) : ''));
   };
 }

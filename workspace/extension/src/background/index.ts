@@ -5,7 +5,7 @@ import type Anthropic from '@anthropic-ai/sdk';
 import { mergeIntoChunks } from '../shared/captions';
 import { chooseTranscriptMode, conceptsNear, currentChapter, currentSectionIndex, estimateTokens, renderCues, selectWindow } from '../shared/context';
 import * as db from '../shared/db';
-import { DHASH_H, DHASH_W, dHash, FRAME_PREFIX, NO_HASH, pruneSampleIds, toGray } from '../shared/frames';
+import { DHASH_H, DHASH_W, dHash, FRAME_PREFIX, MAX_ASK_FRAMES, NO_HASH, pruneIds, pruneSampleIds, toGray } from '../shared/frames';
 import { mergeNotation, NOTATION_SCHEMA } from '../shared/glossary';
 import { base64ToBytes, bytesToBase64, splitDataUrl } from '../shared/image';
 import { conceptsInState, learnerDigest } from '../shared/learner';
@@ -87,6 +87,17 @@ async function getApiKey(): Promise<string | null> {
 
 const sessionMeta = async (videoId: string) => ((await chrome.storage.session.get(`m:${videoId}`))[`m:${videoId}`] as VideoMeta | undefined) ?? null;
 
+/** Page metadata for recently visited videos, in memory-backed session storage. Only the most
+ * recent few are kept, so a long browsing session cannot fill the quota. */
+const MAX_SESSION_META = 24;
+async function putSessionMeta(meta: VideoMeta) {
+  const order = (((await chrome.storage.session.get('metaOrder')).metaOrder as string[] | undefined) ?? []).filter((id) => id !== meta.videoId);
+  order.push(meta.videoId);
+  const drop = order.splice(0, Math.max(0, order.length - MAX_SESSION_META));
+  if (drop.length) await chrome.storage.session.remove(drop.map((id) => `m:${id}`));
+  await chrome.storage.session.set({ [`m:${meta.videoId}`]: meta, metaOrder: order });
+}
+
 /** Creates or refreshes the stored video record from page metadata (only for videos the learner engages with). */
 async function touchVideo(meta: VideoMeta): Promise<VideoRecord> {
   if (meta.playlist) await db.put('playlists', { id: meta.playlist.id, title: meta.playlist.title, videoIds: meta.playlist.videoIds });
@@ -146,6 +157,7 @@ async function storeFrame(videoId: string, t: number, dataUrl: string, hash: str
   const id = uid(FRAME_PREFIX[kind]);
   await db.put('frames', { id, videoId, t, blob: dataUrlToBlob(dataUrl), hash, width, height, kind, createdAt: Date.now() });
   if (kind === 'sample') await db.delMany('frames', pruneSampleIds(await db.keysByVideo('frames', videoId), 40));
+  if (kind === 'ask') await db.delMany('frames', pruneIds(await db.keysByVideo('frames', videoId), FRAME_PREFIX.ask, MAX_ASK_FRAMES));
   records.notifyChanged(videoId, ['frames']);
   return id;
 }
@@ -197,12 +209,15 @@ async function handleMessage(msg: ToBackground, sender: chrome.runtime.MessageSe
       return { ok: true };
     }
     case 'bg/meta-put':
-      await chrome.storage.session.set({ [`m:${msg.meta.videoId}`]: msg.meta });
+      await putSessionMeta(msg.meta);
       if (await db.get('videos', msg.meta.videoId)) await touchVideo(msg.meta);
       return { ok: true };
     case 'bg/has-key': {
       const k = await getApiKey();
-      return { hasKey: !!k, hint: k ? `…${k.slice(-4)}` : '' };
+      // The hint is part of the key: give it to the extension's own pages only, never to the
+      // content script inside YouTube's page.
+      const ownPage = !!sender.url?.startsWith(`chrome-extension://${chrome.runtime.id}/`);
+      return { hasKey: !!k, hint: k && ownPage ? `…${k.slice(-4)}` : '' };
     }
     case 'bg/inject':
       try {

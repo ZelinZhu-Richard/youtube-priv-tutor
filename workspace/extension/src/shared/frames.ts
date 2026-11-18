@@ -127,8 +127,16 @@ export const FRAME_PREFIX = { sample: 'fs', bookmark: 'fb', ask: 'fa' } as const
 
 /** Sample ids to delete so the newest `max` samples remain (works on keys only, no blobs loaded). */
 export function pruneSampleIds(ids: string[], max = 40): string[] {
+  return pruneIds(ids, FRAME_PREFIX.sample, max);
+}
+
+/** Question frames kept per video; older ones are dropped (their notes keep the text). */
+export const MAX_ASK_FRAMES = 60;
+
+/** Ids with `prefix` to delete so the newest `max` remain. Ids start with a base-36 timestamp, so they sort by age. */
+export function pruneIds(ids: string[], prefix: string, max: number): string[] {
   return ids
-    .filter((id) => id.startsWith(FRAME_PREFIX.sample))
+    .filter((id) => id.startsWith(prefix))
     .sort()
     .reverse()
     .slice(max);
