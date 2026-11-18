@@ -150,7 +150,9 @@ function main() {
     const v = findVideo();
     if (!v || !videoId || adShowing()) return;
     const t = v.currentTime;
-    if (checkpoints && checkpoints.videoId === videoId && checkpoints.mode !== 'off') {
+    // Only while a tutor UI is checking in: with the panel closed nobody would show the question,
+    // so pausing would be unexplained. Skipped checkpoints stay unanswered rather than marked done.
+    if (checkpoints && checkpoints.videoId === videoId && checkpoints.mode !== 'off' && Date.now() <= engagedUntil) {
       for (const id of crossedCheckpoints(lastT, t, checkpoints.items, checkpoints.done)) {
         checkpoints.done.add(id);
         const pause = checkpoints.mode === 'active';

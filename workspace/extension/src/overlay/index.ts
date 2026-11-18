@@ -132,8 +132,19 @@ function build() {
     return port;
   };
 
+  /** True from the moment a question is accepted until its request is sent or abandoned. */
+  let preparing = false;
   async function ask(kind: AskRequest['kind'], question: string) {
-    if (reqId) return;
+    if (reqId || preparing) return;
+    preparing = true;
+    try {
+      await prepareAndSend(kind, question);
+    } finally {
+      preparing = false;
+    }
+  }
+
+  async function prepareAndSend(kind: AskRequest['kind'], question: string) {
     api!.pause();
     const st = api!.state();
     if (!st.videoId || !st.meta) {
@@ -144,6 +155,12 @@ function build() {
     // The state above was read before captions loaded; use the status this call returns.
     const captions = await api!.ensureCaptions();
     const f = await api!.capture();
+    // The learner may have moved to another video while captions loaded; the frame just captured
+    // would then be the new video's, so do not send or store it under the old one.
+    if (api!.state().videoId !== st.videoId) {
+      status.textContent = 'The video changed. Ask again.';
+      return;
+    }
     const parts = f.ok ? splitDataUrl(f.dataUrl) : null;
     const t = st.player?.t ?? 0;
     text = '';
