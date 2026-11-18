@@ -309,7 +309,9 @@ function Concepts(props: { videos: VideoRecord[]; problems: PracticeProblem[]; j
               videoId: homeVideo.videoId,
               map: homeVideo.map,
               learner: homeVideo.learner,
-              problems: props.problems.filter((p) => p.videoId === homeVideo.videoId && p.concept.toLowerCase() === c.key),
+              // Every set for this video, newest first and labelled by concept: the form's dropdown can
+              // pick a different concept than the one clicked in the graph, and its set must still show.
+              problems: props.problems.filter((p) => p.videoId === homeVideo.videoId),
               hasKey: props.hasKey,
               jobs: props.jobs,
               runJob: (key, req, onDone) => props.runJob(key, req, (r) => { props.reload(); onDone?.(r); }),
