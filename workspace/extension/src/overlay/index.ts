@@ -199,6 +199,8 @@ function build() {
     host,
     focus: () => setTimeout(() => input.focus(), 0),
     run: (action?: CommandAction) => {
+      // The side panel pauses for this shortcut; in fullscreen the overlay stands in for it.
+      if (action === 'ask-moment') api.pause();
       if (action === 'im-lost') ask('lost', '');
       else if (action === 'explain-screen') ask('explain-screen', '');
     },

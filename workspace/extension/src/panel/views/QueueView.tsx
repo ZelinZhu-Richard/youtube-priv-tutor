@@ -27,6 +27,18 @@ export function QueueView({ onOpen, compact }: { onOpen: (videoId: string, t: nu
   };
   useEffect(() => {
     load();
+    // Cards can be deleted or rescheduled elsewhere (Settings "clear all", another view). Drop any
+    // that are no longer due from the queue, without disturbing the order of the rest.
+    const onMsg = (msg: { type?: string; kinds?: string[] }) => {
+      if (msg?.type !== 'evt/data' || !msg.kinds?.includes('cards')) return;
+      db.dueCardsFromDb().then((due) => {
+        const ids = new Set(due.map((c) => c.id));
+        setQueue((q) => (q ? q.filter((c) => ids.has(c.id)) : q));
+      });
+      db.getAll('cards').then((all) => setTotal(all.length));
+    };
+    chrome.runtime.onMessage.addListener(onMsg);
+    return () => chrome.runtime.onMessage.removeListener(onMsg);
   }, []);
   // Cards graded "Again" leave the queue until they are due (10 minutes), then rejoin at the end
   // without disturbing the card on screen.

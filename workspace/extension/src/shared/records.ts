@@ -101,11 +101,13 @@ export async function recordAttempt(problem: PracticeProblem, attempt: ProblemAt
 }
 
 export async function reviewCard(card: ReviewCard, grade: Grade): Promise<ReviewCard> {
+  // The caller's copy may be stale: a card deleted meanwhile must stay deleted.
+  if (!(await db.get('cards', card.id))) return card;
   const next = schedule(card, grade);
   await db.put('cards', next);
   if (card.concept && (grade === 'good' || grade === 'easy') && card.kind === 'concept') {
     // A concept reviewed well twice in a row counts as solid again.
-    if (next.reps >= 2) await learn(card.videoId, { type: 'quiz', correct: true, concepts: [card.concept], note: 'spaced review' });
+    if (next.reps >= 2 && (await db.get('videos', card.videoId))) await learn(card.videoId, { type: 'quiz', correct: true, concepts: [card.concept], note: 'spaced review' });
   }
   notifyChanged(card.videoId, ['cards']);
   return next;
