@@ -1,0 +1,30 @@
+// One-time migration of first-build data (chrome.storage) into IndexedDB. Safe to call from any
+// extension context; a Web Lock makes concurrent callers wait for one migration.
+import * as db from './db';
+import { migrateV1 } from './library';
+import { cardsForVideo } from './srs';
+
+const FLAG = 'migratedV1';
+
+export async function ensureMigrated(): Promise<{ migrated: number } | null> {
+  if (await db.kvGet<boolean>(FLAG)) return null;
+  return navigator.locks.request('yt-tutor-migrate', async () => {
+    if (await db.kvGet<boolean>(FLAG)) return null;
+    const local = await chrome.storage.local.get(null);
+    const session = await chrome.storage.session.get(null).catch(() => ({}));
+    const r = migrateV1(local, session);
+    for (const v of r.videos) {
+      // Merge with anything a newer build already wrote for the same video.
+      await db.updateVideo(v.videoId, (cur) => (cur.map || cur.updatedAt > v.updatedAt ? { ...v, ...cur, map: cur.map ?? v.map } : v));
+    }
+    await db.putMany('history', r.history);
+    await db.putMany('transcripts', r.transcripts);
+    for (const v of r.videos) {
+      const existing = new Set((await db.byVideo('cards', v.videoId)).map((c) => c.id));
+      await db.putMany('cards', cardsForVideo(v).filter((c) => !existing.has(c.id)));
+    }
+    await db.kvSet(FLAG, true);
+    if (r.migratedKeys.length) await chrome.storage.local.remove(r.migratedKeys);
+    return { migrated: r.videos.length };
+  });
+}

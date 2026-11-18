@@ -1,0 +1,95 @@
+{
+ "contents": {
+  "twoColumnWatchNextResults": {
+   "playlist": {
+    "playlist": {
+     "playlistId": "PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi",
+     "title": "Neural networks",
+     "currentIndex": 0,
+     "contents": [
+      {
+       "playlistPanelVideoRenderer": {
+        "videoId": "aircAruvnKk",
+        "indexText": {
+         "simpleText": "▶"
+        }
+       }
+      },
+      {
+       "playlistPanelVideoRenderer": {
+        "videoId": "IHZwWFHWa-w",
+        "indexText": {
+         "simpleText": "2"
+        }
+       }
+      },
+      {
+       "playlistPanelVideoRenderer": {
+        "videoId": "Ilg3gGewQ5U",
+        "indexText": {
+         "simpleText": "3"
+        }
+       }
+      },
+      {
+       "playlistPanelVideoRenderer": {
+        "videoId": "tIeHLnjs5U8",
+        "indexText": {
+         "simpleText": "4"
+        }
+       }
+      },
+      {
+       "playlistPanelVideoRenderer": {
+        "videoId": "LPZh9BOjkQs",
+        "indexText": {
+         "simpleText": "5"
+        }
+       }
+      },
+      {
+       "playlistPanelVideoRenderer": {
+        "videoId": "wjZofJX0v4M",
+        "indexText": {
+         "simpleText": "6"
+        }
+       }
+      },
+      {
+       "playlistPanelVideoRenderer": {
+        "videoId": "eMlx5fFNoYc",
+        "indexText": {
+         "simpleText": "7"
+        }
+       }
+      },
+      {
+       "playlistPanelVideoRenderer": {
+        "videoId": "9-Jl0dxWQs8",
+        "indexText": {
+         "simpleText": "8"
+        }
+       }
+      },
+      {
+       "playlistPanelVideoRenderer": {
+        "videoId": "GlYgs6v2YfU",
+        "indexText": {
+         "simpleText": "9"
+        }
+       }
+      },
+      {
+       "playlistPanelVideoRenderer": {
+        "videoId": "iv-5mZ_9CPY",
+        "indexText": {
+         "simpleText": "10"
+        }
+       }
+      }
+     ]
+    }
+   }
+  }
+ }
+}
