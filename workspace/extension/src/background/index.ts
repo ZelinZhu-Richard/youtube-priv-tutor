@@ -155,7 +155,10 @@ chrome.runtime.onMessage.addListener((msg: ToBackground | { type: 'evt/data'; ki
   }
   if (!msg || typeof msg.type !== 'string' || !msg.type.startsWith('bg/')) return false;
   // Only this extension's own pages and its content scripts on YouTube may ask for anything.
-  if (sender.id !== chrome.runtime.id || (sender.tab && !(sender.tab.url && YOUTUBE_URL.test(sender.tab.url)))) return false;
+  // Extension pages opened in a tab (Settings, Library) have sender.tab set too, so judge by the
+  // sending frame's own URL, not by whether a tab is attached.
+  const from = sender.url ?? sender.tab?.url ?? '';
+  if (sender.id !== chrome.runtime.id || !(from.startsWith(`chrome-extension://${chrome.runtime.id}/`) || YOUTUBE_URL.test(from))) return false;
   handleMessage(msg as ToBackground, sender)
     .then(sendResponse)
     .catch((e) => sendResponse({ ok: false, message: String(e) }));
