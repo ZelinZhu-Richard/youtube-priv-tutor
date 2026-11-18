@@ -2,7 +2,7 @@
 // keyboard commands, and voice input.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { conceptsNear, defaultCaptionRange } from '../../shared/context';
-import { detectBackwardReference, nearestFrame, previousDistinct } from '../../shared/frames';
+import { detectBackwardReference, nearestFrame, previousDistinct, hashedFrames } from '../../shared/frames';
 import { splitDataUrl, type Rect } from '../../shared/image';
 import type { AskRequest, CommandAction, FrameResult, TutorError } from '../../shared/messages';
 import { uid } from '../../shared/rpc';
@@ -79,8 +79,10 @@ export function useAsk(app: App) {
       const f = nearestFrame(frames, ref.t, 45);
       return f && Math.abs(f.t - now) > 5 ? [f.id] : [];
     }
-    const current = nearestFrame(frames.filter((f) => f.t <= now + 1), now, 30);
-    const f = previousDistinct(frames, now, current?.hash ?? null, ref.steps);
+    // Slide changes are counted by comparing hashes, so only frames with a real hash take part.
+    const hashed = hashedFrames(frames);
+    const current = nearestFrame(hashed.filter((f) => f.t <= now + 1), now, 30);
+    const f = previousDistinct(hashed, now, current?.hash ?? null, ref.steps);
     return f ? [f.id] : [];
   }
 

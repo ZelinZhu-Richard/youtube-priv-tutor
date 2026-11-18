@@ -5,7 +5,7 @@ import type Anthropic from '@anthropic-ai/sdk';
 import { mergeIntoChunks } from '../shared/captions';
 import { chooseTranscriptMode, conceptsNear, currentChapter, currentSectionIndex, estimateTokens, renderCues, selectWindow } from '../shared/context';
 import * as db from '../shared/db';
-import { FRAME_PREFIX, pruneSampleIds } from '../shared/frames';
+import { DHASH_H, DHASH_W, dHash, FRAME_PREFIX, NO_HASH, pruneSampleIds, toGray } from '../shared/frames';
 import { mergeNotation, NOTATION_SCHEMA } from '../shared/glossary';
 import { base64ToBytes, bytesToBase64, splitDataUrl } from '../shared/image';
 import { conceptsInState, learnerDigest } from '../shared/learner';
@@ -140,6 +140,19 @@ async function storeFrame(videoId: string, t: number, dataUrl: string, hash: str
   if (kind === 'sample') await db.delMany('frames', pruneSampleIds(await db.keysByVideo('frames', videoId), 40));
   records.notifyChanged(videoId, ['frames']);
   return id;
+}
+
+/** Perceptual hash of a stored image, so frames saved with a question compare with sampled ones. */
+async function hashImage(blob: Blob): Promise<string> {
+  try {
+    const bmp = await createImageBitmap(blob);
+    const g = new OffscreenCanvas(DHASH_W, DHASH_H).getContext('2d', { willReadFrequently: true })!;
+    g.drawImage(bmp, 0, 0, DHASH_W, DHASH_H);
+    bmp.close();
+    return dHash(toGray(g.getImageData(0, 0, DHASH_W, DHASH_H).data, DHASH_W, DHASH_H));
+  } catch {
+    return NO_HASH;
+  }
 }
 
 async function blobToFrameInput(blob: Blob, width: number, height: number): Promise<FrameInput> {
@@ -590,7 +603,8 @@ async function ask(ctx: Ctx, msg: AskRequest, call: Call, done: (res: DoneResult
   const { body, alternatives } = msg.kind === 'lost' ? extractAlternatives(r.text) : { body: r.text, alternatives: [] };
   let frameId: string | null = null;
   if (msg.frame && msg.keepFrame !== false) {
-    frameId = await storeFrame(msg.videoId, msg.t, `data:${msg.frame.mediaType};base64,${msg.frame.data}`, '0000000000000000', msg.frame.width, msg.frame.height, 'ask').catch(() => null);
+    const dataUrl = `data:${msg.frame.mediaType};base64,${msg.frame.data}`;
+    frameId = await storeFrame(msg.videoId, msg.t, dataUrl, await hashImage(dataUrlToBlob(dataUrl)), msg.frame.width, msg.frame.height, 'ask').catch(() => null);
   }
   const entry: HistoryEntry = {
     id: uid('h'),

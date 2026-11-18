@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { emptyVideo } from '../src/shared/db';
 import { assembleNotesZip, frameFileName, slug, toMarkdown } from '../src/shared/export';
-import { detectBackwardReference, dHash, edgeDensity, hamming, isNearDuplicate, nearestFrame, previousDistinct, pruneFrames, toGray } from '../src/shared/frames';
+import { hashedFrames, NO_HASH, detectBackwardReference, dHash, edgeDensity, hamming, isNearDuplicate, nearestFrame, previousDistinct, pruneFrames, toGray } from '../src/shared/frames';
 import { glossaryEntries, glossaryUpTo, mergeNotation } from '../src/shared/glossary';
 import { applyLearnerEvent, EMPTY_LEARNER } from '../src/shared/learner';
 import {
@@ -140,6 +140,21 @@ describe('frame buffer', () => {
     expect(nearestFrame(frames, 300, 20)).toBeNull();
     expect(previousDistinct(frames, 60, 'ffffffff00000000', 1)?.id).toBe('c');
     expect(previousDistinct(frames, 60, 'ffffffff00000000', 2)?.id).toBe('b');
+  });
+  it('ignores unhashed question frames when counting slide changes', () => {
+    // Slide A sampled at 10 s, slide B sampled at 40 s, then a question frame of slide B with no hash.
+    const mixed = [
+      { id: 's1', t: 10, hash: '00000000ffffffff', kind: 'sample' as const, createdAt: 1 },
+      { id: 's2', t: 40, hash: 'ffffffff00000000', kind: 'sample' as const, createdAt: 2 },
+      { id: 'q', t: 50, hash: NO_HASH, kind: 'ask' as const, createdAt: 3 },
+    ];
+    const hashed = hashedFrames(mixed);
+    expect(hashed.map((f) => f.id)).toEqual(['s1', 's2']);
+    const current = nearestFrame(hashed.filter((f) => f.t <= 61), 60, 30);
+    expect(previousDistinct(hashed, 60, current?.hash ?? null, 1)?.id).toBe('s1');
+    // Without the filter the unhashed frame is taken as the current slide and slide B is returned.
+    const naive = nearestFrame(mixed.filter((f) => f.t <= 61), 60, 30);
+    expect(previousDistinct(mixed, 60, naive?.hash ?? null, 1)?.id).toBe('s2');
   });
   it('detects questions about earlier screens', () => {
     expect(detectBackwardReference('what was the formula at 12:30?')).toEqual({ kind: 'time', t: 750 });

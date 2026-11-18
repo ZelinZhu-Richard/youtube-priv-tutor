@@ -42,6 +42,14 @@ export function isNearDuplicate(hash: string, recent: string[], threshold = DUPL
   return recent.some((h) => hamming(hash, h) <= threshold);
 }
 
+/** Placeholder stored when a frame's hash could not be computed. */
+export const NO_HASH = '0000000000000000';
+
+/** Frames whose hash can be compared; unhashed ones would look like a different slide every time. */
+export function hashedFrames<F extends { hash: string }>(frames: F[]): F[] {
+  return frames.filter((f) => f.hash !== NO_HASH);
+}
+
 export interface FrameLike {
   id: string;
   t: number;

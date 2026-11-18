@@ -141,7 +141,8 @@ function build() {
       return;
     }
     status.textContent = 'Capturing the frame…';
-    await api!.ensureCaptions();
+    // The state above was read before captions loaded; use the status this call returns.
+    const captions = await api!.ensureCaptions();
     const f = await api!.capture();
     const parts = f.ok ? splitDataUrl(f.dataUrl) : null;
     const t = st.player?.t ?? 0;
@@ -160,7 +161,7 @@ function build() {
       frame: f.ok && parts ? { mediaType: parts.mediaType as 'image/jpeg', data: parts.data, width: f.width, height: f.height, qualityLabel: f.qualityLabel } : null,
       frameNote: f.ok ? null : f.message,
       crop: null,
-      captionRange: st.captions.state === 'ready' ? defaultCaptionRange(t, st.player?.duration ?? st.meta.lengthSeconds) : null,
+      captionRange: captions.state === 'ready' ? defaultCaptionRange(t, st.player?.duration ?? st.meta.lengthSeconds) : null,
       fallbackLanguage: navigator.language || 'English',
       keepFrame: true,
     };

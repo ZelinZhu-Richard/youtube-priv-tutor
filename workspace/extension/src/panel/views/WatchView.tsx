@@ -329,12 +329,19 @@ function PreWatch({ app, ask, library }: { app: App; ask: Ask; library: VideoRec
   );
 }
 
+/** The checkpoint the grading job belongs to. Kept outside the card so switching panel tabs and
+ * coming back (which remounts the card) does not throw away an answer that is being graded. */
+let gradedCheckpoint: string | null = null;
+
 function CheckpointCard({ app }: { app: App }) {
   const hit = app.checkpointHit;
   const cp: MapCheckpoint | undefined = hit ? app.map?.checkpoints.find((c) => c.id === hit.id) : undefined;
   const [draft, setDraft] = useState('');
   const [confidence, setConfidence] = useState<Confidence | null>(null);
   useEffect(() => {
+    const id = hit?.id ?? null;
+    if (id === gradedCheckpoint) return;
+    gradedCheckpoint = id;
     setDraft('');
     setConfidence(null);
     app.clearJob('grade');
