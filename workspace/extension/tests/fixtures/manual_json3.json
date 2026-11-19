@@ -1,0 +1,18 @@
+{
+  "wireMagic": "pb3",
+  "pens": [{}],
+  "wsWinStyles": [{}],
+  "wpWinPositions": [{}],
+  "events": [
+    { "tStartMs": 4220, "dDurationMs": 1180, "segs": [{ "utf8": "Here is a seven." }] },
+    { "tStartMs": 6060, "dDurationMs": 4653, "segs": [{ "utf8": "It is drawn badly, on a tiny grid of 28x28 pixels," }] },
+    { "tStartMs": 10713, "dDurationMs": 3007, "segs": [{ "utf8": "yet you read it as a seven without effort." }] },
+    { "tStartMs": 14340, "dDurationMs": 2219, "segs": [{ "utf8": "Pause for a second and notice how" }] },
+    { "tStartMs": 16559, "dDurationMs": 2401, "segs": [{ "utf8": "strange it is that this feels easy." }] },
+    { "tStartMs": 19700, "dDurationMs": 3262, "segs": [{ "utf8": "These other drawings are sevens too &amp; you know it," }] },
+    { "tStartMs": 22962, "dDurationMs": 4251, "segs": [{ "utf8": "even though almost every pixel value differs from one" }] },
+    { "tStartMs": 27213, "dDurationMs": 1107, "segs": [{ "utf8": "picture to the next." }] },
+    { "tStartMs": 28900, "dDurationMs": 4048, "segs": [{ "utf8": "So what is a neuron here?" }] },
+    { "tStartMs": 32948, "dDurationMs": 3992, "segs": [{ "utf8": "Just a thing that holds a number between 0 and 1." }] }
+  ]
+}

@@ -1,0 +1,669 @@
+{
+ "playerResponse": {
+  "videoDetails": {
+   "videoId": "kCc8FmEb1nY",
+   "title": "Let's build GPT: from scratch, in code, spelled out.",
+   "author": "Andrej Karpathy",
+   "lengthSeconds": "6980",
+   "isLiveContent": false
+  },
+  "captions": {
+   "playerCaptionsTracklistRenderer": {
+    "captionTracks": [
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=kCc8FmEb1nY&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=en",
+      "name": {
+       "simpleText": "English (auto-generated)"
+      },
+      "vssId": "a.en",
+      "languageCode": "en",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=kCc8FmEb1nY&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=fr-FR&variant=timing-optimized",
+      "name": {
+       "simpleText": "French (France) (auto-generated)"
+      },
+      "vssId": "a.fr-FR",
+      "languageCode": "fr-FR",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=kCc8FmEb1nY&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=de-DE&variant=timing-optimized",
+      "name": {
+       "simpleText": "German (Germany) (auto-generated)"
+      },
+      "vssId": "a.de-DE",
+      "languageCode": "de-DE",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=kCc8FmEb1nY&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=id&variant=timing-optimized",
+      "name": {
+       "simpleText": "Indonesian (auto-generated)"
+      },
+      "vssId": "a.id",
+      "languageCode": "id",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=kCc8FmEb1nY&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=it&variant=timing-optimized",
+      "name": {
+       "simpleText": "Italian (auto-generated)"
+      },
+      "vssId": "a.it",
+      "languageCode": "it",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=kCc8FmEb1nY&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=ja&variant=timing-optimized",
+      "name": {
+       "simpleText": "Japanese (auto-generated)"
+      },
+      "vssId": "a.ja",
+      "languageCode": "ja",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=kCc8FmEb1nY&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=ko&variant=timing-optimized",
+      "name": {
+       "simpleText": "Korean (auto-generated)"
+      },
+      "vssId": "a.ko",
+      "languageCode": "ko",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=kCc8FmEb1nY&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=ml&variant=timing-optimized",
+      "name": {
+       "simpleText": "Malayalam (auto-generated)"
+      },
+      "vssId": "a.ml",
+      "languageCode": "ml",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=kCc8FmEb1nY&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=pl&variant=timing-optimized",
+      "name": {
+       "simpleText": "Polish (auto-generated)"
+      },
+      "vssId": "a.pl",
+      "languageCode": "pl",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=kCc8FmEb1nY&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=pt-BR&variant=timing-optimized",
+      "name": {
+       "simpleText": "Portuguese (Brazil) (auto-generated)"
+      },
+      "vssId": "a.pt-BR",
+      "languageCode": "pt-BR",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=kCc8FmEb1nY&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=ru&variant=timing-optimized",
+      "name": {
+       "simpleText": "Russian (auto-generated)"
+      },
+      "vssId": "a.ru",
+      "languageCode": "ru",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=kCc8FmEb1nY&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=es-US&variant=timing-optimized",
+      "name": {
+       "simpleText": "Spanish (United States) (auto-generated)"
+      },
+      "vssId": "a.es-US",
+      "languageCode": "es-US",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     }
+    ],
+    "audioTracks": [
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "ko.10",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "hi.10",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "es-US.10",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "de-DE.10",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "fr-FR.10",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "id.10",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "it.10",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "ja.10",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "ml.10",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "pl.10",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "pt-BR.10",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "ru.10",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11
+      ],
+      "defaultCaptionTrackIndex": 0,
+      "hasDefaultTrack": true,
+      "audioTrackId": "en-US.4",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_OFF_RECOMMENDED"
+     }
+    ],
+    "defaultAudioTrackIndex": 12
+   }
+  }
+ },
+ "initialData": {
+  "currentVideoEndpoint": {
+   "watchEndpoint": {
+    "videoId": "kCc8FmEb1nY"
+   }
+  },
+  "wrapper": {
+   "deeply": [
+    {
+     "nested": {
+      "chapters": [
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "intro: ChatGPT, Transformers, nanoGPT, Shakespeare"
+         },
+         "timeRangeStartMillis": 0
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "reading and exploring the data"
+         },
+         "timeRangeStartMillis": 472000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "tokenization, train/val split"
+         },
+         "timeRangeStartMillis": 568000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "data loader: batches of chunks of data"
+         },
+         "timeRangeStartMillis": 867000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "simplest baseline: bigram language model, loss, generation"
+         },
+         "timeRangeStartMillis": 1331000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "training the bigram model"
+         },
+         "timeRangeStartMillis": 2093000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "port our code to a script"
+         },
+         "timeRangeStartMillis": 2280000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "version 1: averaging past context with for loops, the weakest form of aggregation"
+         },
+         "timeRangeStartMillis": 2533000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "the trick in self-attention: matrix multiply as weighted aggregation"
+         },
+         "timeRangeStartMillis": 2831000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "version 2: using matrix multiply"
+         },
+         "timeRangeStartMillis": 3114000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "version 3: adding softmax"
+         },
+         "timeRangeStartMillis": 3282000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "minor code cleanup"
+         },
+         "timeRangeStartMillis": 3506000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "positional encoding"
+         },
+         "timeRangeStartMillis": 3618000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "THE CRUX OF THE VIDEO: version 4: self-attention"
+         },
+         "timeRangeStartMillis": 3720000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "note 1: attention as communication"
+         },
+         "timeRangeStartMillis": 4298000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "note 2: attention has no notion of space, operates over sets"
+         },
+         "timeRangeStartMillis": 4366000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "note 3: there is no communication across batch dimension"
+         },
+         "timeRangeStartMillis": 4420000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "note 4: encoder blocks vs. decoder blocks"
+         },
+         "timeRangeStartMillis": 4454000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "note 5: attention vs. self-attention vs. cross-attention"
+         },
+         "timeRangeStartMillis": 4539000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "note 6: \"scaled\" self-attention. why divide by sqrt(head_size)"
+         },
+         "timeRangeStartMillis": 4616000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "inserting a single self-attention block to our network"
+         },
+         "timeRangeStartMillis": 4751000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "multi-headed self-attention"
+         },
+         "timeRangeStartMillis": 4919000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "feedforward layers of transformer block"
+         },
+         "timeRangeStartMillis": 5065000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "residual connections"
+         },
+         "timeRangeStartMillis": 5208000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "layernorm (and its relationship to our previous batchnorm)"
+         },
+         "timeRangeStartMillis": 5571000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "scaling up the model! creating a few variables. adding dropout"
+         },
+         "timeRangeStartMillis": 5869000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "encoder vs. decoder vs. both (?) Transformers"
+         },
+         "timeRangeStartMillis": 6159000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "super quick walkthrough of nanoGPT, batched multi-headed self-attention"
+         },
+         "timeRangeStartMillis": 6382000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "back to ChatGPT, GPT-3, pretraining vs. finetuning, RLHF"
+         },
+         "timeRangeStartMillis": 6533000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "conclusions"
+         },
+         "timeRangeStartMillis": 6872000
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ }
+}

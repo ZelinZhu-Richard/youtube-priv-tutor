@@ -1,0 +1,800 @@
+{
+ "playerResponse": {
+  "videoDetails": {
+   "videoId": "aircAruvnKk",
+   "title": "But what is a neural network? | Deep learning chapter 1",
+   "author": "3Blue1Brown",
+   "lengthSeconds": "1120",
+   "isLiveContent": false
+  },
+  "captions": {
+   "playerCaptionsTracklistRenderer": {
+    "captionTracks": [
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=ar",
+      "name": {
+       "simpleText": "Arabic"
+      },
+      "vssId": ".ar",
+      "languageCode": "ar",
+      "rtl": true,
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=bn",
+      "name": {
+       "simpleText": "Bangla"
+      },
+      "vssId": ".bn",
+      "languageCode": "bn",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=zh",
+      "name": {
+       "simpleText": "Chinese"
+      },
+      "vssId": ".zh",
+      "languageCode": "zh",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=zh-CN",
+      "name": {
+       "simpleText": "Chinese (China)"
+      },
+      "vssId": ".zh-CN",
+      "languageCode": "zh-CN",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=zh-TW",
+      "name": {
+       "simpleText": "Chinese (Taiwan)"
+      },
+      "vssId": ".zh-TW",
+      "languageCode": "zh-TW",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=cs",
+      "name": {
+       "simpleText": "Czech"
+      },
+      "vssId": ".cs",
+      "languageCode": "cs",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=en",
+      "name": {
+       "simpleText": "English"
+      },
+      "vssId": ".en",
+      "languageCode": "en",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&kind=asr&lang=en&variant=gemini",
+      "name": {
+       "simpleText": "English (auto-generated)"
+      },
+      "vssId": "a.en",
+      "languageCode": "en",
+      "kind": "asr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=fil",
+      "name": {
+       "simpleText": "Filipino"
+      },
+      "vssId": ".fil",
+      "languageCode": "fil",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=fr",
+      "name": {
+       "simpleText": "French"
+      },
+      "vssId": ".fr",
+      "languageCode": "fr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=de",
+      "name": {
+       "simpleText": "German"
+      },
+      "vssId": ".de",
+      "languageCode": "de",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=el",
+      "name": {
+       "simpleText": "Greek"
+      },
+      "vssId": ".el",
+      "languageCode": "el",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=iw",
+      "name": {
+       "simpleText": "Hebrew"
+      },
+      "vssId": ".iw",
+      "languageCode": "iw",
+      "rtl": true,
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=hi",
+      "name": {
+       "simpleText": "Hindi"
+      },
+      "vssId": ".hi",
+      "languageCode": "hi",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=hu",
+      "name": {
+       "simpleText": "Hungarian"
+      },
+      "vssId": ".hu",
+      "languageCode": "hu",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=it",
+      "name": {
+       "simpleText": "Italian"
+      },
+      "vssId": ".it",
+      "languageCode": "it",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=ja",
+      "name": {
+       "simpleText": "Japanese"
+      },
+      "vssId": ".ja",
+      "languageCode": "ja",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=ko",
+      "name": {
+       "simpleText": "Korean"
+      },
+      "vssId": ".ko",
+      "languageCode": "ko",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=mr",
+      "name": {
+       "simpleText": "Marathi"
+      },
+      "vssId": ".mr",
+      "languageCode": "mr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=fa",
+      "name": {
+       "simpleText": "Persian"
+      },
+      "vssId": ".fa",
+      "languageCode": "fa",
+      "rtl": true,
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=fa-IR",
+      "name": {
+       "simpleText": "Persian (Iran)"
+      },
+      "vssId": ".fa-IR",
+      "languageCode": "fa-IR",
+      "rtl": true,
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=pl",
+      "name": {
+       "simpleText": "Polish"
+      },
+      "vssId": ".pl",
+      "languageCode": "pl",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=pt",
+      "name": {
+       "simpleText": "Portuguese"
+      },
+      "vssId": ".pt",
+      "languageCode": "pt",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=pt-BR",
+      "name": {
+       "simpleText": "Portuguese (Brazil)"
+      },
+      "vssId": ".pt-BR",
+      "languageCode": "pt-BR",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=ro",
+      "name": {
+       "simpleText": "Romanian"
+      },
+      "vssId": ".ro",
+      "languageCode": "ro",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=ru",
+      "name": {
+       "simpleText": "Russian"
+      },
+      "vssId": ".ru",
+      "languageCode": "ru",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=es",
+      "name": {
+       "simpleText": "Spanish"
+      },
+      "vssId": ".es",
+      "languageCode": "es",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=th",
+      "name": {
+       "simpleText": "Thai"
+      },
+      "vssId": ".th",
+      "languageCode": "th",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=tr",
+      "name": {
+       "simpleText": "Turkish"
+      },
+      "vssId": ".tr",
+      "languageCode": "tr",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=uk",
+      "name": {
+       "simpleText": "Ukrainian"
+      },
+      "vssId": ".uk",
+      "languageCode": "uk",
+      "isTranslatable": true,
+      "trackName": ""
+     },
+     {
+      "baseUrl": "https://www.youtube.com/api/timedtext?v=aircAruvnKk&ei=REDACTED&caps=asr&opi=REDACTED&exp=xpe&xoaf=5&xowf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=REDACTED&sparams=REDACTED&signature=REDACTED&key=REDACTED&lang=ur",
+      "name": {
+       "simpleText": "Urdu"
+      },
+      "vssId": ".ur",
+      "languageCode": "ur",
+      "rtl": true,
+      "isTranslatable": true,
+      "trackName": ""
+     }
+    ],
+    "audioTracks": [
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17,
+       18,
+       19,
+       20,
+       21,
+       22,
+       23,
+       24,
+       25,
+       26,
+       27,
+       28,
+       29,
+       30,
+       7
+      ],
+      "defaultCaptionTrackIndex": 6,
+      "hasDefaultTrack": true,
+      "audioTrackId": "uz.3",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17,
+       18,
+       19,
+       20,
+       21,
+       22,
+       23,
+       24,
+       25,
+       26,
+       27,
+       28,
+       29,
+       30,
+       7
+      ],
+      "defaultCaptionTrackIndex": 6,
+      "hasDefaultTrack": true,
+      "audioTrackId": "fr.3",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17,
+       18,
+       19,
+       20,
+       21,
+       22,
+       23,
+       24,
+       25,
+       26,
+       27,
+       28,
+       29,
+       30,
+       7
+      ],
+      "defaultCaptionTrackIndex": 6,
+      "hasDefaultTrack": true,
+      "audioTrackId": "de.3",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17,
+       18,
+       19,
+       20,
+       21,
+       22,
+       23,
+       24,
+       25,
+       26,
+       27,
+       28,
+       29,
+       30,
+       7
+      ],
+      "defaultCaptionTrackIndex": 6,
+      "hasDefaultTrack": true,
+      "audioTrackId": "ar.3",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17,
+       18,
+       19,
+       20,
+       21,
+       22,
+       23,
+       24,
+       25,
+       26,
+       27,
+       28,
+       29,
+       30,
+       7
+      ],
+      "defaultCaptionTrackIndex": 6,
+      "hasDefaultTrack": true,
+      "audioTrackId": "es.3",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17,
+       18,
+       19,
+       20,
+       21,
+       22,
+       23,
+       24,
+       25,
+       26,
+       27,
+       28,
+       29,
+       30,
+       7
+      ],
+      "defaultCaptionTrackIndex": 6,
+      "hasDefaultTrack": true,
+      "audioTrackId": "hi.3",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17,
+       18,
+       19,
+       20,
+       21,
+       22,
+       23,
+       24,
+       25,
+       26,
+       27,
+       28,
+       29,
+       30,
+       7
+      ],
+      "defaultCaptionTrackIndex": 6,
+      "hasDefaultTrack": true,
+      "audioTrackId": "ru.3",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17,
+       18,
+       19,
+       20,
+       21,
+       22,
+       23,
+       24,
+       25,
+       26,
+       27,
+       28,
+       29,
+       30,
+       7
+      ],
+      "defaultCaptionTrackIndex": 6,
+      "hasDefaultTrack": true,
+      "audioTrackId": "th.3",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+     },
+     {
+      "captionTrackIndices": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17,
+       18,
+       19,
+       20,
+       21,
+       22,
+       23,
+       24,
+       25,
+       26,
+       27,
+       28,
+       29,
+       30,
+       7
+      ],
+      "defaultCaptionTrackIndex": 6,
+      "hasDefaultTrack": true,
+      "audioTrackId": "en-US.4",
+      "captionsInitialState": "CAPTIONS_INITIAL_STATE_OFF_RECOMMENDED"
+     }
+    ],
+    "defaultAudioTrackIndex": 8
+   }
+  }
+ },
+ "initialData": {
+  "currentVideoEndpoint": {
+   "watchEndpoint": {
+    "videoId": "aircAruvnKk"
+   }
+  },
+  "wrapper": {
+   "deeply": [
+    {
+     "nested": {
+      "chapters": [
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "Introduction example"
+         },
+         "timeRangeStartMillis": 0
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "Series preview"
+         },
+         "timeRangeStartMillis": 67000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "What are neurons?"
+         },
+         "timeRangeStartMillis": 162000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "Introducing layers"
+         },
+         "timeRangeStartMillis": 215000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "Why layers?"
+         },
+         "timeRangeStartMillis": 331000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "Edge detection example"
+         },
+         "timeRangeStartMillis": 518000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "Counting weights and biases"
+         },
+         "timeRangeStartMillis": 694000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "How learning relates"
+         },
+         "timeRangeStartMillis": 750000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "Notation and linear algebra"
+         },
+         "timeRangeStartMillis": 806000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "Recap"
+         },
+         "timeRangeStartMillis": 917000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "Some final words"
+         },
+         "timeRangeStartMillis": 987000
+        }
+       },
+       {
+        "chapterRenderer": {
+         "title": {
+          "simpleText": "ReLU vs Sigmoid"
+         },
+         "timeRangeStartMillis": 1023000
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ }
+}
