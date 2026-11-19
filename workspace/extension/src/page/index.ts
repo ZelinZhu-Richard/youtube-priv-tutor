@@ -180,7 +180,10 @@ function install() {
     if (existing) return existing;
     const p = player();
     if (!p?.setOption) return null;
-    triggerSeq++; // a new capture supersedes any earlier one's pending re-checks
+    // This capture owns the caption setting until a newer capture starts or the learner touches it.
+    const seq = ++triggerSeq;
+    const startedAt = Date.now();
+    const mine = () => seq === triggerSeq && userCaptionsAt < startedAt;
     // During an ad the player fetches the ad's captions and aborts the video's, and a caption
     // setting changed now can be re-applied when the ad ends. The content script waits for ads.
     if (p.classList.contains(YT.adShowingClass)) throw new Error('ad-showing');
@@ -222,15 +225,17 @@ function install() {
         /* ignore */
       }
     };
-    restore();
-    // The late re-checks only finish this capture's own restore. They stand down if another
-    // capture has started, the video changed, or the learner touched captions in the meantime.
-    const seq = ++triggerSeq;
-    const restoredAt = Date.now();
+    // Put things back only while this capture still owns the setting. If the learner chose a
+    // caption setting meanwhile, or a newer capture is running, theirs stands. After a move to
+    // another video, only switch off what this capture switched on; the old video's track does
+    // not apply there.
+    const sameVideo = () => currentVideoId() === videoId;
+    if (mine() && (sameVideo() || !wasOn)) restore();
+    // The late re-checks finish this capture's own switch-off under the same conditions.
     if (!wasOn) {
       for (const ms of [800, 2500]) {
         setTimeout(() => {
-          if (seq === triggerSeq && currentVideoId() === videoId && userCaptionsAt < restoredAt && p.isSubtitlesOn?.() === true) restore();
+          if (mine() && sameVideo() && p.isSubtitlesOn?.() === true) restore();
         }, ms);
       }
     }

@@ -133,7 +133,8 @@ export function App() {
             />
           )}
           {app.view === 'practice' && !app.video && <p class="small muted">Loading…</p>}
-          {app.view === 'review' && <ReviewView app={app} />}
+          {/* Keyed by video: a half-written summary or quiz marks must not carry over to the next video. */}
+          {app.view === 'review' && <ReviewView key={app.videoId ?? 'none'} app={app} />}
           {app.view === 'transcript' && <TranscriptView app={app} />}
           {app.view === 'queue' && <QueueView onOpen={(vid, t) => (vid === app.videoId && t !== null ? app.seek(t) : openVideo(vid, t))} />}
         </div>
