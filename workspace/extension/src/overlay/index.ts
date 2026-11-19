@@ -171,7 +171,9 @@ function build() {
       return;
     }
     const parts = f.ok ? splitDataUrl(f.dataUrl) : null;
-    const t = st.player?.t ?? 0;
+    // The moment is the one the captured frame shows: the learner may have seeked while captions
+    // loaded, and the caption window and saved time must match the picture.
+    const t = f.ok ? f.t : api!.state().player?.t ?? st.player?.t ?? 0;
     text = '';
     ans.textContent = '';
     input.value = '';

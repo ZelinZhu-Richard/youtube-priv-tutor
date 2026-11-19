@@ -22,16 +22,24 @@ export async function saveProfile(p: LearnerProfile): Promise<void> {
 export async function getUsage(): Promise<UsageTotals> {
   return ((await chrome.storage.session.get(KEYS.usage))[KEYS.usage] as UsageTotals | undefined) ?? EMPTY_USAGE;
 }
-export async function addUsage(u: { input: number; output: number; cacheRead: number; cacheWrite: number; costUsd: number }) {
-  const cur = await getUsage();
-  await chrome.storage.session.set({
-    [KEYS.usage]: {
-      requests: cur.requests + 1,
-      inputTokens: cur.inputTokens + u.input,
-      outputTokens: cur.outputTokens + u.output,
-      cacheReadTokens: cur.cacheReadTokens + u.cacheRead,
-      cacheWriteTokens: cur.cacheWriteTokens + u.cacheWrite,
-      costUsd: cur.costUsd + u.costUsd,
-    } satisfies UsageTotals,
-  });
+/** Usage increments run one at a time: two requests finishing together would otherwise both read
+ *  the same totals and the later write would drop the other's tokens and cost. */
+let usageQueue: Promise<void> = Promise.resolve();
+export function addUsage(u: { input: number; output: number; cacheRead: number; cacheWrite: number; costUsd: number }): Promise<void> {
+  usageQueue = usageQueue
+    .then(async () => {
+      const cur = await getUsage();
+      await chrome.storage.session.set({
+        [KEYS.usage]: {
+          requests: cur.requests + 1,
+          inputTokens: cur.inputTokens + u.input,
+          outputTokens: cur.outputTokens + u.output,
+          cacheReadTokens: cur.cacheReadTokens + u.cacheRead,
+          cacheWriteTokens: cur.cacheWriteTokens + u.cacheWrite,
+          costUsd: cur.costUsd + u.costUsd,
+        } satisfies UsageTotals,
+      });
+    })
+    .catch(() => undefined);
+  return usageQueue;
 }
