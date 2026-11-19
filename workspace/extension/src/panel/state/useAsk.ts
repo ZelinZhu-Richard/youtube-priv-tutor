@@ -352,5 +352,26 @@ export function useVoice(enabled: boolean, onText: (text: string, final: boolean
   function stop() {
     rec.current?.stop();
   }
+  /** Stops for good: used when the control that would stop it is going away. */
+  function kill() {
+    const r = rec.current;
+    if (!r) return;
+    r.onresult = null;
+    r.onerror = null;
+    r.onend = null;
+    rec.current = null;
+    try {
+      r.stop();
+    } catch {
+      /* already stopped */
+    }
+    setListening(false);
+  }
+  // The composer can unmount mid-dictation (the video ends and the panel moves to Review); the
+  // key-up that would stop the recogniser never arrives then. Also stop when voice is turned off.
+  useEffect(() => kill, []);
+  useEffect(() => {
+    if (!enabled) kill();
+  }, [enabled]);
   return { supported, listening, error, start, stop };
 }

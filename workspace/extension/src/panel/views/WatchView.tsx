@@ -464,13 +464,21 @@ function GlossaryCard({ app }: { app: App }) {
   const job = app.jobs.notation;
   if (!app.map && !entries.length) return null;
   const readFrame = async () => {
+    const videoId = app.videoId;
     const f = await app.cs({ type: 'cs/capture-frame' }).catch(() => null);
     const parts = f?.ok ? splitDataUrl(f.dataUrl) : null;
-    if (!f?.ok || !parts || !app.videoId) {
+    if (!f?.ok || !parts || !videoId) {
       app.setNotice('Could not capture the frame to read notation from.');
       return;
     }
-    app.runJob('notation', { type: 'notation', reqId: uid('n'), videoId: app.videoId, t: f.t, frame: { mediaType: parts.mediaType as 'image/jpeg', data: parts.data, width: f.width, height: f.height } }, () => app.reload());
+    // The capture can take a moment (screenshot fallback). If the page has moved to another video,
+    // this frame is that video's and must not be read into this one's glossary.
+    const st = await app.cs({ type: 'cs/get-state' }).catch(() => null);
+    if (!st || st.videoId !== videoId) {
+      app.setNotice('The video changed before the frame was read. Try again.');
+      return;
+    }
+    app.runJob('notation', { type: 'notation', reqId: uid('n'), videoId, t: f.t, frame: { mediaType: parts.mediaType as 'image/jpeg', data: parts.data, width: f.width, height: f.height } }, () => app.reload());
   };
   return (
     <div class="card">
